@@ -126,7 +126,7 @@
       <h2>Get in Touch</h2>
       <p>Email us at <a href="mailto:info@lambagentic.com" style="color:#79c0ff">info@lambagentic.com</a></p>
       <p>
-        <a class="ai-call-button" href="tel:+18005550199">Give Our AI Agent a Call</a>
+        <a class="ai-call-button" href="tel:+12083611518">Give Our AI Agent a Call</a>
       </p>
     </section>
   </main>
