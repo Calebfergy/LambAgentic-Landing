@@ -3,74 +3,84 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LambAgentic | Tech for the Future</title>
+  <title>LambAgentic | Elevating Innovation</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Open+Sans&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --accent: #5a50f0;
+      --accent-light: #7d73ff;
+      --dark-bg: #0f2027;
+      --mid-bg: #203a43;
+      --light-bg: #2c5364;
+      --text-light: #f0f0f0;
+      --text-muted: #8b949e;
+    }
     body {
       margin: 0;
       font-family: 'Open Sans', sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: #f0f0f0;
+      background: linear-gradient(135deg, var(--dark-bg), var(--mid-bg), var(--light-bg));
+      color: var(--text-light);
       scroll-behavior: smooth;
     }
     header {
       background: rgba(22, 27, 34, 0.9);
-      padding: 50px 20px;
+      padding: 60px 20px 20px;
       text-align: center;
       box-shadow: 0 2px 10px rgba(0,0,0,0.6);
     }
+    header img {
+      width: clamp(200px, 30vw, 360px);
+      max-width: 90%;
+      height: auto;
+      margin-bottom: 10px;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
     header h1 {
-    margin: 0;
-    font-size: clamp(1.8rem, 8vw, 3.5rem);
-    font-family: 'Orbitron', sans-serif;
-    color: #58a6ff;
-    letter-spacing: 0.5vw;
-    animation: glow 2s ease-in-out infinite alternate;
-    word-break: break-word;
-    overflow-wrap: break-word;
-    max-width: 100%;
+      margin: 0;
+      font-size: clamp(1.8rem, 8vw, 3.5rem);
+      font-family: 'Orbitron', sans-serif;
+      color: var(--accent);
+      letter-spacing: 0.5vw;
+      animation: glow 2s ease-in-out infinite alternate;
     }
     header p {
       font-size: 1.2rem;
       margin-top: 10px;
-      color: #8b949e;
-    }
-    @keyframes glow {
-      from { text-shadow: 0 0 5px #58a6ff; }
-      to { text-shadow: 0 0 20px #58a6ff, 0 0 30px #58a6ff; }
+      color: var(--text-muted);
     }
     nav {
       background: #21262d;
       display: flex;
       justify-content: center;
-      gap: 40px;
+      flex-wrap: wrap;
+      gap: 30px;
       padding: 15px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     }
     nav a {
-      color: #58a6ff;
+      color: var(--accent);
       text-decoration: none;
       font-weight: bold;
       font-size: 1.1rem;
       transition: color 0.3s;
     }
     nav a:hover {
-      color: #79c0ff;
+      color: var(--accent-light);
     }
     main {
       padding: 60px 20px;
       text-align: center;
-      max-width: 900px;
+      max-width: 1000px;
       margin: auto;
     }
     section {
-      margin-bottom: 60px;
+      margin-bottom: 70px;
       animation: fadeInUp 1.5s ease;
     }
     main h2 {
-      font-size: 2.5rem;
+      font-size: 2.6rem;
       margin-bottom: 10px;
-      color: #58a6ff;
+      color: var(--accent);
     }
     p {
       font-size: 1.1rem;
@@ -78,7 +88,7 @@
     }
     .ai-call-button {
       display: inline-block;
-      background: #58a6ff;
+      background: var(--accent);
       color: #0d1117;
       padding: 15px 30px;
       font-size: 1.1rem;
@@ -90,7 +100,7 @@
       box-shadow: 0 4px 15px rgba(88, 166, 255, 0.4);
     }
     .ai-call-button:hover {
-      background: #79c0ff;
+      background: var(--accent-light);
       transform: scale(1.05);
     }
     footer {
@@ -98,7 +108,11 @@
       text-align: center;
       padding: 30px 20px;
       font-size: 0.95rem;
-      color: #8b949e;
+      color: var(--text-muted);
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 5px var(--accent); }
+      to { text-shadow: 0 0 20px var(--accent), 0 0 30px var(--accent); }
     }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(30px); }
@@ -107,29 +121,45 @@
   </style>
 </head>
 <body>
-  <header>
-    <h1>LambAgentic</h1>
-    <p>Empowering Tech. Emboldening Ideas.</p>
-  </header>
+<header>
+  <img src="LambAgenticLogo.png" alt="LambAgentic Logo" style="animation: glow 2s ease-in-out infinite alternate;">
+  <p>Elevating Innovation. Empowering Efficiency.</p>
+</header>
+
   <nav>
     <a href="#about">About</a>
     <a href="#services">Services</a>
+    <a href="#solutions">Solutions</a>
     <a href="#contact">Contact</a>
   </nav>
   <main>
     <section id="about">
       <h2>Who We Are</h2>
-      <p>LambAgentic is a bold new force in technology, crafting intelligent solutions that are lean, agile, and forward-looking.</p>
+      <p>LambAgentic is a modern tech company delivering intelligent solutions through custom development, automation, and conversational AI. We partner with businesses to unlock efficiency, scalability, and innovation.</p>
     </section>
     <section id="services">
-      <h2>What We Do</h2>
-      <p>From AI-powered web tools to automation services, we streamline processes and elevate user experience through cutting-edge innovation.</p>
+      <h2>Our Services</h2>
+    <p>Whether you need to streamline operations, build internal tools, or create customer-facing AI agents, we specialize in:</p>
+    <ul style="list-style: none; padding: 0;">
+      <li>✅ Custom AI Tooling & Automation</li>
+      <li>✅ Workflow Optimization</li>
+      <li>✅ Voice and Chat AI Agents</li>
+      <li>✅ Data-Driven Dashboards</li>
+      <li>✅ API Integration & Backends</li>
+    </ul>
+    <p style="margin-top: 1rem;">
+      <strong>Need a smarter phone agent?</strong> Try <a href="sylvia.html" style="color: var(--accent-light); text-decoration: underline;">Sylvia</a> — our real-time AI answering assistant that never misses a lead.
+    </p>
+    </section>
+    <section id="solutions">
+      <h2>Tailored Solutions</h2>
+      <p>We don’t do one-size-fits-all. Every business is unique—and so is our approach. Let’s build your perfect tech stack together.</p>
     </section>
     <section id="contact">
       <h2>Get in Touch</h2>
-      <p>Email us at <a href="mailto:info@lambagentic.com" style="color:#79c0ff">info@lambagentic.com</a></p>
+      <p>Email us at <a href="mailto:info@lambagentic.com" style="color:var(--accent-light)">info@lambagentic.com</a></p>
       <p>
-        <a class="ai-call-button" href="tel:+12083611518">Give Our AI Agent a Call</a>
+        <a class="ai-call-button" href="tel:+12083611518">Talk to Our AI Assistant</a>
       </p>
     </section>
   </main>

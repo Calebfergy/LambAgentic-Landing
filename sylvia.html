@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LambAgentic – Sylvia AI Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Open+Sans&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #5a50f0;
+      --accent-light: #7d73ff;
+      --dark-bg: #0f2027;
+      --mid-bg: #203a43;
+      --light-bg: #2c5364;
+      --text-light: #f0f0f0;
+      --text-muted: #8b949e;
+    }
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background: linear-gradient(135deg, var(--dark-bg), var(--mid-bg), var(--light-bg));
+      color: var(--text-light);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: rgba(22, 27, 34, 0.9);
+      padding: 60px 20px 20px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+    header img {
+      width: clamp(200px, 30vw, 360px);
+      max-width: 90%;
+      height: auto;
+      margin-bottom: 10px;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+    header p {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    h2, h3 {
+      color: var(--accent);
+    }
+    a {
+      color: var(--accent-light);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    blockquote {
+      border-left: 4px solid var(--accent);
+      padding-left: 1rem;
+      margin-left: 0;
+      color: #ccc;
+      font-style: italic;
+    }
+    ul {
+      padding-left: 1.5rem;
+    }
+    .section {
+      margin-bottom: 2.5rem;
+    }
+    .highlight {
+      background: #43aa8b;
+      color: #000;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+    .cta-button {
+      display: inline-block;
+      margin-top: 1.5rem;
+      padding: 0.8rem 1.5rem;
+      background-color: var(--accent);
+      color: #0d1117;
+      font-weight: bold;
+      border: none;
+      border-radius: 30px;
+      font-size: 1rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 15px rgba(88, 166, 255, 0.3);
+    }
+    .cta-button:hover {
+      background-color: var(--accent-light);
+      transform: scale(1.05);
+    }
+    .back-link {
+      display: block;
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+    .back-link a {
+      color: var(--accent-light);
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 5px var(--accent); }
+      to { text-shadow: 0 0 20px var(--accent), 0 0 30px var(--accent); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="LambAgenticLogo.png" alt="LambAgentic Logo">
+    <p>AI-powered voice assistant — built for speed, scale, and service</p>
+  </header>
+
+  <div class="container">
+    <h2>🧠 Meet Sylvia — Your AI Answering Assistant</h2>
+
+    <div class="section">
+      <h2>⚡ Capture Leads in Under 30 Seconds — Or Lose Them</h2>
+      <p>
+        A <a href="https://hbr.org/2011/03/the-short-life-of-online-sales-leads" target="_blank">Harvard Business Review study</a> found that if you don’t respond to a potential customer within the <span class="highlight">first 30 seconds</span>, you're <strong>up to 90% less likely to convert</strong> them.
+      </p>
+      <blockquote>
+        “Companies that try to contact potential customers within an hour are nearly 7x as likely to qualify the lead.”  
+        — <em>Harvard Business Review</em>
+      </blockquote>
+      <p>That’s why <strong>Sylvia</strong> responds instantly.</p>
+    </div>
+
+    <div class="section">
+      <h2>🤖 What Sylvia Does</h2>
+      <p>Sylvia is your 24/7 AI-powered answering agent. She greets your customers, understands their questions, and takes action — all in real time.</p>
+      <ul>
+        <li>Customizable branded greeting</li>
+        <li>Live transcription using Deepgram</li>
+        <li>Smart GPT-powered replies</li>
+        <li>Function triggers or human escalation</li>
+        <li>Completely hands-free</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>⚒️ How It Works</h2>
+      <ul>
+        <li>🔗 <strong>WebSocket connection</strong>: Secure real-time listening</li>
+        <li>🧠 <strong>Live transcription</strong>: Instant speech-to-text</li>
+        <li>💬 <strong>AI response generation</strong>: GPT crafts replies</li>
+        <li>🔄 <strong>Function routing</strong>: Triggers based on customer needs</li>
+        <li>🧹 <strong>Flexible integration</strong>: CRM, booking, ticketing</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>💬 Customizable Greeting Example</h2>
+      <p><em>"Hi there! Thanks for calling. How can I help you today?"</em><br/>
+      → Easily change this to match <strong>your brand’s voice</strong>.</p>
+    </div>
+
+    <div class="section">
+      <h2>🔌 Seamless Integration, No Hassle</h2>
+      <p>
+        Sylvia connects effortlessly with your existing tools — from calendars and CRMs to support systems and lead capture platforms.
+        No code? No problem. We’ll help you plug Sylvia in with <strong>zero disruption to your current workflow</strong>.
+      </p>
+      <p>
+        Whether you're a small business or an enterprise, Sylvia adapts to fit your needs — not the other way around.
+      </p>
+    </div>
+
+    <div class="section">
+      <h2>🎯 Why Sylvia Works</h2>
+      <ul>
+        <li>📞 <strong>Responds instantly</strong> — no voicemails, no waiting</li>
+        <li>📈 <strong>Captures more leads</strong> — speed drives conversion</li>
+        <li>⚒️ <strong>Automates FAQs and workflows</strong></li>
+        <li>🧠 <strong>Custom-trained for your business</strong> — we help it speak your language</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>🌐 Ready to Engage Smarter?</h2>
+      <p>Let Sylvia answer your next call — <strong>before your competitor does</strong>.</p>
+      <a class="cta-button" href="tel:+12083611518">📞 Call Our Demo Agent</a>
+    </div>
+
+    <div class="back-link">
+      <a href="index.html">← Back to LambAgentic.com</a>
+    </div>
+  </div>
+</body>
+</html>
