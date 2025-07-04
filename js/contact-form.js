@@ -99,7 +99,7 @@ class ContactFormHandler {
       }
 
       // Check if Supabase configuration is available
-      if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+      if (!window.SUPABASE_URL) {
         throw new Error('Service configuration not available. Please contact us directly at info@lambagentic.com.');
       }
 
@@ -170,7 +170,6 @@ class ContactFormHandler {
       const response = await fetch(functionUrl, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
