@@ -3,192 +3,680 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LambAgentic – Sylvia AI Assistant</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Open+Sans&display=swap" rel="stylesheet">
+  <title>Sylvia AI Assistant | LambAgentic</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
   <style>
-    :root {
-      --accent: #5a50f0;
-      --accent-light: #7d73ff;
-      --dark-bg: #0f2027;
-      --mid-bg: #203a43;
-      --light-bg: #2c5364;
-      --text-light: #f0f0f0;
-      --text-muted: #8b949e;
+    .sylvia-hero {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 120px 0 80px;
     }
-    body {
-      font-family: 'Open Sans', sans-serif;
-      background: linear-gradient(135deg, var(--dark-bg), var(--mid-bg), var(--light-bg));
-      color: var(--text-light);
-      margin: 0;
-      padding: 0;
+    
+    .sylvia-hero .hero-title {
+      color: white;
     }
-    header {
-      background: rgba(22, 27, 34, 0.9);
-      padding: 60px 20px 20px;
-      text-align: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    
+    .sylvia-hero .hero-subtitle {
+      color: rgba(255, 255, 255, 0.9);
     }
-    header img {
-      width: clamp(200px, 30vw, 360px);
-      max-width: 90%;
-      height: auto;
-      margin-bottom: 10px;
-      animation: glow 2s ease-in-out infinite alternate;
+    
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-xl);
+      margin: var(--space-3xl) 0;
     }
-    header p {
-      font-size: 1.1rem;
-      color: var(--text-muted);
-      margin-top: 0.5rem;
+    
+    .feature-card {
+      background: var(--white);
+      padding: var(--space-xl);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--gray-200);
+      transition: all 0.3s ease;
     }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 2rem;
+    
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-xl);
     }
-    h2, h3 {
-      color: var(--accent);
-    }
-    a {
-      color: var(--accent-light);
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    blockquote {
-      border-left: 4px solid var(--accent);
-      padding-left: 1rem;
-      margin-left: 0;
-      color: #ccc;
-      font-style: italic;
-    }
-    ul {
-      padding-left: 1.5rem;
-    }
-    .section {
-      margin-bottom: 2.5rem;
-    }
-    .highlight {
-      background: #43aa8b;
-      color: #000;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-    }
-    .cta-button {
-      display: inline-block;
-      margin-top: 1.5rem;
-      padding: 0.8rem 1.5rem;
-      background-color: var(--accent);
-      color: #0d1117;
-      font-weight: bold;
-      border: none;
-      border-radius: 30px;
-      font-size: 1rem;
-      text-decoration: none;
-      cursor: pointer;
-      transition: background 0.3s ease, transform 0.2s ease;
-      box-shadow: 0 4px 15px rgba(88, 166, 255, 0.3);
-    }
-    .cta-button:hover {
-      background-color: var(--accent-light);
-      transform: scale(1.05);
-    }
-    .back-link {
+    
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: var(--space-lg);
       display: block;
-      margin-top: 1rem;
+    }
+    
+    .feature-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: var(--space-md);
+    }
+    
+    .demo-section {
+      background: var(--gray-50);
+      padding: var(--space-3xl) 0;
+    }
+    
+    .demo-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3xl);
+      align-items: center;
+    }
+    
+    .conversation-demo {
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      padding: var(--space-xl);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--gray-200);
+    }
+    
+    .conversation-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-lg);
+      border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .conversation-avatar {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 1.25rem;
+    }
+    
+    .conversation-info h4 {
+      margin: 0;
+      color: var(--gray-900);
+    }
+    
+    .conversation-info p {
+      margin: 0;
+      color: var(--success);
+      font-size: 0.875rem;
+    }
+    
+    .conversation-messages {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    
+    .message {
+      padding: var(--space-md);
+      border-radius: var(--radius-lg);
+      max-width: 85%;
+      animation: messageSlide 0.5s ease;
+    }
+    
+    .message.ai {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      align-self: flex-start;
+    }
+    
+    .message.user {
+      background: var(--gray-200);
+      color: var(--gray-900);
+      align-self: flex-end;
+    }
+    
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md);
+      background: var(--gray-100);
+      border-radius: var(--radius-lg);
+      max-width: 100px;
+      align-self: flex-start;
+    }
+    
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .typing-dots span {
+      width: 8px;
+      height: 8px;
+      background: var(--gray-500);
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+    
+    .typing-dots span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .typing-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-lg);
+      margin: var(--space-3xl) 0;
+    }
+    
+    .stat-highlight {
       text-align: center;
-      font-size: 0.95rem;
-      color: var(--text-muted);
+      padding: var(--space-xl);
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--gray-200);
     }
-    .back-link a {
-      color: var(--accent-light);
+    
+    .stat-highlight .stat-number {
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: block;
+      margin-bottom: var(--space-sm);
     }
-    @keyframes glow {
-      from { text-shadow: 0 0 5px var(--accent); }
-      to { text-shadow: 0 0 20px var(--accent), 0 0 30px var(--accent); }
+    
+    .integration-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--space-lg);
+      margin: var(--space-xl) 0;
+    }
+    
+    .integration-card {
+      background: var(--white);
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .integration-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .integration-icon {
+      font-size: 2rem;
+      margin-bottom: var(--space-md);
+      display: block;
+    }
+    
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: translateY(0);
+      }
+      30% {
+        transform: translateY(-10px);
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .demo-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .integration-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
-  <header>
-    <img src="LambAgenticLogo.png" alt="LambAgentic Logo">
-    <p>AI-powered voice assistant — built for speed, scale, and service</p>
-  </header>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <img src="LambAgenticLogo.png" alt="LambAgentic" class="nav-logo">
+        <span class="brand-text">LambAgentic</span>
+      </div>
+      <div class="nav-menu" id="nav-menu">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="index.html#services" class="nav-link">Services</a>
+        <a href="index.html#solutions" class="nav-link">Solutions</a>
+        <a href="index.html#about" class="nav-link">About</a>
+        <a href="index.html#contact" class="nav-link">Contact</a>
+        <a href="tel:+12083611518" class="nav-cta">Try Sylvia</a>
+      </div>
+      <div class="nav-toggle" id="nav-toggle">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </div>
+    </div>
+  </nav>
 
-  <div class="container">
-    <h2>🧠 Meet Sylvia — Your AI Answering Assistant</h2>
+  <!-- Hero Section -->
+  <section class="sylvia-hero">
+    <div class="container">
+      <div class="hero-content" style="text-align: center; max-width: 800px; margin: 0 auto;">
+        <h1 class="hero-title">
+          Meet Sylvia
+          <span style="display: block; font-size: 0.7em; margin-top: 0.5rem;">Your AI-Powered Phone Assistant</span>
+        </h1>
+        <p class="hero-subtitle" style="font-size: 1.25rem; margin-bottom: 2rem;">
+          Never miss another lead. Sylvia answers your calls instantly, qualifies prospects, 
+          and seamlessly hands off to your team—all while you focus on growing your business.
+        </p>
+        <div class="hero-actions">
+          <a href="tel:+12083611518" class="btn btn-primary" style="background: white; color: #667eea;">
+            📞 Call Sylvia Now
+          </a>
+          <a href="#demo" class="btn btn-outline" style="border-color: white; color: white;">
+            See How It Works
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <div class="section">
-      <h2>⚡ Capture Leads in Under 30 Seconds — Or Lose Them</h2>
-      <p>
-        A <a href="https://hbr.org/2011/03/the-short-life-of-online-sales-leads" target="_blank">Harvard Business Review study</a> found that if you don’t respond to a potential customer within the <span class="highlight">first 30 seconds</span>, you're <strong>up to 90% less likely to convert</strong> them.
+  <!-- Problem Section -->
+  <section style="padding: var(--space-3xl) 0;">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">The 30-Second Rule</h2>
+        <p class="section-subtitle">
+          Harvard Business Review research shows that if you don't respond to a potential customer 
+          within 30 seconds, you're up to 90% less likely to convert them.
+        </p>
+      </div>
+      
+      <div class="stats-grid">
+        <div class="stat-highlight">
+          <span class="stat-number">30s</span>
+          <span class="stat-label">Critical Response Window</span>
+        </div>
+        <div class="stat-highlight">
+          <span class="stat-number">90%</span>
+          <span class="stat-label">Conversion Loss After Delay</span>
+        </div>
+        <div class="stat-highlight">
+          <span class="stat-number">7x</span>
+          <span class="stat-label">More Likely to Qualify Leads</span>
+        </div>
+        <div class="stat-highlight">
+          <span class="stat-number">24/7</span>
+          <span class="stat-label">Sylvia's Availability</span>
+        </div>
+      </div>
+      
+      <div style="text-align: center; margin-top: var(--space-xl);">
+        <blockquote style="font-size: 1.25rem; font-style: italic; color: var(--gray-600); max-width: 600px; margin: 0 auto; border-left: 4px solid var(--primary); padding-left: var(--space-lg);">
+          "Companies that try to contact potential customers within an hour are nearly 7x as likely to qualify the lead."
+          <footer style="margin-top: var(--space-md); font-size: 1rem; color: var(--gray-500);">
+            — Harvard Business Review
+          </footer>
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section style="background: var(--gray-50); padding: var(--space-3xl) 0;">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">How Sylvia Works</h2>
+        <p class="section-subtitle">
+          Advanced AI technology that understands, responds, and takes action
+        </p>
+      </div>
+      
+      <div class="feature-grid">
+        <div class="feature-card">
+          <span class="feature-icon">🔗</span>
+          <h3 class="feature-title">Instant Connection</h3>
+          <p>Secure WebSocket connection ensures real-time communication with zero delay</p>
+        </div>
+        
+        <div class="feature-card">
+          <span class="feature-icon">🧠</span>
+          <h3 class="feature-title">Live Transcription</h3>
+          <p>Powered by Deepgram for accurate speech-to-text conversion in real-time</p>
+        </div>
+        
+        <div class="feature-card">
+          <span class="feature-icon">💬</span>
+          <h3 class="feature-title">Intelligent Responses</h3>
+          <p>GPT-powered conversation engine crafts natural, contextual replies</p>
+        </div>
+        
+        <div class="feature-card">
+          <span class="feature-icon">🎯</span>
+          <h3 class="feature-title">Smart Routing</h3>
+          <p>Automatically triggers functions or escalates to humans based on conversation context</p>
+        </div>
+        
+        <div class="feature-card">
+          <span class="feature-icon">🔧</span>
+          <h3 class="feature-title">Custom Integration</h3>
+          <p>Seamlessly connects with your CRM, calendar, and existing business tools</p>
+        </div>
+        
+        <div class="feature-card">
+          <span class="feature-icon">📊</span>
+          <h3 class="feature-title">Analytics & Insights</h3>
+          <p>Detailed call analytics and lead qualification metrics for continuous improvement</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Demo Section -->
+  <section id="demo" class="demo-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">See Sylvia in Action</h2>
+        <p class="section-subtitle">
+          Watch how Sylvia handles a typical customer inquiry
+        </p>
+      </div>
+      
+      <div class="demo-container">
+        <div class="conversation-demo">
+          <div class="conversation-header">
+            <div class="conversation-avatar">S</div>
+            <div class="conversation-info">
+              <h4>Sylvia AI Assistant</h4>
+              <p>● Connected - Ready to help</p>
+            </div>
+          </div>
+          
+          <div class="conversation-messages" id="demo-messages">
+            <div class="message ai">
+              Hi there! Thanks for calling LambAgentic. How can I help you today?
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h3 style="font-size: 1.5rem; margin-bottom: var(--space-lg); color: var(--gray-900);">
+            What Makes Sylvia Different
+          </h3>
+          <ul style="list-style: none; padding: 0;">
+            <li style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);">
+              <span style="color: var(--success); font-size: 1.25rem;">✓</span>
+              <span>Responds in under 3 seconds</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);">
+              <span style="color: var(--success); font-size: 1.25rem;">✓</span>
+              <span>Understands natural conversation</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);">
+              <span style="color: var(--success); font-size: 1.25rem;">✓</span>
+              <span>Qualifies leads automatically</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);">
+              <span style="color: var(--success); font-size: 1.25rem;">✓</span>
+              <span>Seamless human handoff</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);">
+              <span style="color: var(--success); font-size: 1.25rem;">✓</span>
+              <span>Custom-trained for your business</span>
+            </li>
+          </ul>
+          
+          <div style="margin-top: var(--space-xl);">
+            <a href="tel:+12083611518" class="btn btn-primary">
+              Experience Sylvia Yourself
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Integration Section -->
+  <section style="padding: var(--space-3xl) 0;">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Seamless Integration</h2>
+        <p class="section-subtitle">
+          Sylvia works with your existing tools and workflows
+        </p>
+      </div>
+      
+      <div class="integration-grid">
+        <div class="integration-card">
+          <span class="integration-icon">📅</span>
+          <h4>Calendar Systems</h4>
+          <p>Google Calendar, Outlook, Calendly</p>
+        </div>
+        
+        <div class="integration-card">
+          <span class="integration-icon">🏢</span>
+          <h4>CRM Platforms</h4>
+          <p>Salesforce, HubSpot, Pipedrive</p>
+        </div>
+        
+        <div class="integration-card">
+          <span class="integration-icon">💬</span>
+          <h4>Communication</h4>
+          <p>Slack, Microsoft Teams, Discord</p>
+        </div>
+        
+        <div class="integration-card">
+          <span class="integration-icon">📊</span>
+          <h4>Analytics</h4>
+          <p>Google Analytics, Mixpanel, Custom Dashboards</p>
+        </div>
+        
+        <div class="integration-card">
+          <span class="integration-icon">🎫</span>
+          <h4>Support Systems</h4>
+          <p>Zendesk, Intercom, Freshdesk</p>
+        </div>
+        
+        <div class="integration-card">
+          <span class="integration-icon">🔗</span>
+          <h4>Custom APIs</h4>
+          <p>Any REST API or webhook integration</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section style="background: var(--gray-50); padding: var(--space-3xl) 0;">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Simple, Transparent Pricing</h2>
+        <p class="section-subtitle">
+          Choose the plan that fits your business needs
+        </p>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-xl); max-width: 900px; margin: 0 auto;">
+        <div style="background: var(--white); padding: var(--space-xl); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); border: 1px solid var(--gray-200);">
+          <h3 style="font-size: 1.5rem; margin-bottom: var(--space-md);">Starter</h3>
+          <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary); margin-bottom: var(--space-md);">
+            $299<span style="font-size: 1rem; color: var(--gray-600);">/month</span>
+          </div>
+          <ul style="list-style: none; padding: 0; margin-bottom: var(--space-xl);">
+            <li style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--gray-200);">Up to 500 calls/month</li>
+            <li style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--gray-200);">Basic CRM integration</li>
+            <li style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--gray-200);">Email support</li>
+            <li style="padding: var(--space-sm) 0;">Call analytics dashboard</li>
+          </ul>
+          <a href="index.html#contact" class="btn btn-outline" style="width: 100%; text-align: center;">Get Started</a>
+        </div>
+        
+        <div style="background: var(--white); padding: var(--space-xl); border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); border: 2px solid var(--primary); position: relative;">
+          <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: var(--space-xs) var(--space-md); border-radius: var(--radius-md); font-size: 0.875rem; font-weight: 600;">Most Popular</div>
+          <h3 style="font-size: 1.5rem; margin-bottom: var(--space-md);">Professional</h3>
+          <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary); margin-bottom: var(--space-md);">
+            $599<span style="font-size: 1rem; color: var(--gray-600);">/month</span>
+          </div>
+          <ul style="list-style: none; padding: 0; margin-bottom: var(--space-xl);">
+            <li style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--gray-200);">Up to 2,000 calls/month</li>
+            <li style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--gray-200);">Advanced CRM integration</li>
+            <li style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--gray-200);">Priority support</li>
+            <li style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--gray-200);">Custom training</li>
+            <li style="padding: var(--space-sm) 0;">Advanced analytics</li>
+          </ul>
+          <a href="index.html#contact" class="btn btn-primary" style="width: 100%; text-align: center;">Get Started</a>
+        </div>
+        
+        <div style="background: var(--white); padding: var(--space-xl); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); border: 1px solid var(--gray-200);">
+          <h3 style="font-size: 1.5rem; margin-bottom: var(--space-md);">Enterprise</h3>
+          <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary); margin-bottom: var(--space-md);">
+            Custom
+          </div>
+          <ul style="list-style: none; padding: 0; margin-bottom: var(--space-xl);">
+            <li style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--gray-200);">Unlimited calls</li>
+            <li style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--gray-200);">Full customization</li>
+            <li style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--gray-200);">Dedicated support</li>
+            <li style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--gray-200);">On-premise deployment</li>
+            <li style="padding: var(--space-sm) 0;">SLA guarantee</li>
+          </ul>
+          <a href="index.html#contact" class="btn btn-outline" style="width: 100%; text-align: center;">Contact Sales</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section style="padding: var(--space-3xl) 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+    <div class="container" style="text-align: center;">
+      <h2 style="font-size: 2.5rem; margin-bottom: var(--space-lg); color: white;">
+        Ready to Never Miss Another Lead?
+      </h2>
+      <p style="font-size: 1.25rem; margin-bottom: var(--space-xl); color: rgba(255, 255, 255, 0.9); max-width: 600px; margin-left: auto; margin-right: auto;">
+        Join hundreds of businesses that trust Sylvia to capture and qualify their leads 24/7.
       </p>
-      <blockquote>
-        “Companies that try to contact potential customers within an hour are nearly 7x as likely to qualify the lead.”  
-        — <em>Harvard Business Review</em>
-      </blockquote>
-      <p>That’s why <strong>Sylvia</strong> responds instantly.</p>
+      <div style="display: flex; gap: var(--space-lg); justify-content: center; flex-wrap: wrap;">
+        <a href="tel:+12083611518" class="btn btn-primary" style="background: white; color: #667eea; font-size: 1.125rem; padding: var(--space-lg) var(--space-xl);">
+          📞 Call Sylvia Now
+        </a>
+        <a href="index.html#contact" class="btn btn-outline" style="border-color: white; color: white; font-size: 1.125rem; padding: var(--space-lg) var(--space-xl);">
+          Schedule Demo
+        </a>
+      </div>
     </div>
+  </section>
 
-    <div class="section">
-      <h2>🤖 What Sylvia Does</h2>
-      <p>Sylvia is your 24/7 AI-powered answering agent. She greets your customers, understands their questions, and takes action — all in real time.</p>
-      <ul>
-        <li>Customizable branded greeting</li>
-        <li>Live transcription using Deepgram</li>
-        <li>Smart GPT-powered replies</li>
-        <li>Function triggers or human escalation</li>
-        <li>Completely hands-free</li>
-      </ul>
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <img src="LambAgenticLogo.png" alt="LambAgentic" class="footer-logo">
+          <p class="footer-tagline">Intelligent Solutions for Modern Business</p>
+        </div>
+        <div class="footer-links">
+          <div class="link-group">
+            <h4>Product</h4>
+            <a href="#demo">How It Works</a>
+            <a href="#pricing">Pricing</a>
+            <a href="index.html#services">All Services</a>
+          </div>
+          <div class="link-group">
+            <h4>Company</h4>
+            <a href="index.html#about">About Us</a>
+            <a href="index.html#contact">Contact</a>
+            <a href="tel:+12083611518">Support</a>
+          </div>
+          <div class="link-group">
+            <h4>Resources</h4>
+            <a href="index.html">Main Site</a>
+            <a href="tel:+12083611518">Try Demo</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 LambAgentic. All rights reserved.</p>
+        <div class="footer-legal">
+          <a href="#privacy">Privacy Policy</a>
+          <a href="#terms">Terms of Service</a>
+        </div>
+      </div>
     </div>
+  </footer>
 
-    <div class="section">
-      <h2>⚒️ How It Works</h2>
-      <ul>
-        <li>🔗 <strong>WebSocket connection</strong>: Secure real-time listening</li>
-        <li>🧠 <strong>Live transcription</strong>: Instant speech-to-text</li>
-        <li>💬 <strong>AI response generation</strong>: GPT crafts replies</li>
-        <li>🔄 <strong>Function routing</strong>: Triggers based on customer needs</li>
-        <li>🧹 <strong>Flexible integration</strong>: CRM, booking, ticketing</li>
-      </ul>
-    </div>
+  <script src="script.js"></script>
+  <script>
+    // Demo conversation animation
+    const demoMessages = [
+      { type: 'user', text: "Hi, I'm interested in your AI automation services. Can you tell me more?" },
+      { type: 'ai', text: "Absolutely! I'd be happy to help. What type of business processes are you looking to automate?" },
+      { type: 'user', text: "We're a real estate company and we get a lot of leads that we struggle to follow up with quickly." },
+      { type: 'ai', text: "Perfect! That's exactly what we specialize in. I can connect you with our real estate automation expert right now. What's the best number to reach you at?" },
+      { type: 'user', text: "That would be great! My number is 555-123-4567." },
+      { type: 'ai', text: "Excellent! I'm transferring you to Sarah, our real estate specialist. She'll be with you in just a moment. Thanks for calling!" }
+    ];
 
-    <div class="section">
-      <h2>💬 Customizable Greeting Example</h2>
-      <p><em>"Hi there! Thanks for calling. How can I help you today?"</em><br/>
-      → Easily change this to match <strong>your brand’s voice</strong>.</p>
-    </div>
+    let messageIndex = 0;
+    const messagesContainer = document.getElementById('demo-messages');
 
-    <div class="section">
-      <h2>🔌 Seamless Integration, No Hassle</h2>
-      <p>
-        Sylvia connects effortlessly with your existing tools — from calendars and CRMs to support systems and lead capture platforms.
-        No code? No problem. We’ll help you plug Sylvia in with <strong>zero disruption to your current workflow</strong>.
-      </p>
-      <p>
-        Whether you're a small business or an enterprise, Sylvia adapts to fit your needs — not the other way around.
-      </p>
-    </div>
+    function addMessage() {
+      if (messageIndex < demoMessages.length) {
+        // Add typing indicator
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator';
+        typingDiv.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+        messagesContainer.appendChild(typingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-    <div class="section">
-      <h2>🎯 Why Sylvia Works</h2>
-      <ul>
-        <li>📞 <strong>Responds instantly</strong> — no voicemails, no waiting</li>
-        <li>📈 <strong>Captures more leads</strong> — speed drives conversion</li>
-        <li>⚒️ <strong>Automates FAQs and workflows</strong></li>
-        <li>🧠 <strong>Custom-trained for your business</strong> — we help it speak your language</li>
-      </ul>
-    </div>
+        setTimeout(() => {
+          // Remove typing indicator
+          messagesContainer.removeChild(typingDiv);
+          
+          // Add actual message
+          const messageDiv = document.createElement('div');
+          const message = demoMessages[messageIndex];
+          messageDiv.className = `message ${message.type}`;
+          messageDiv.textContent = message.text;
+          messagesContainer.appendChild(messageDiv);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+          
+          messageIndex++;
+          
+          // Schedule next message
+          setTimeout(addMessage, 3000);
+        }, 1500);
+      } else {
+        // Reset demo after completion
+        setTimeout(() => {
+          messageIndex = 0;
+          messagesContainer.innerHTML = '<div class="message ai">Hi there! Thanks for calling LambAgentic. How can I help you today?</div>';
+          setTimeout(addMessage, 2000);
+        }, 5000);
+      }
+    }
 
-    <div class="section">
-      <h2>🌐 Ready to Engage Smarter?</h2>
-      <p>Let Sylvia answer your next call — <strong>before your competitor does</strong>.</p>
-      <a class="cta-button" href="tel:+12083611518">📞 Call Our Demo Agent</a>
-    </div>
-
-    <div class="back-link">
-      <a href="index.html">← Back to LambAgentic.com</a>
-    </div>
-  </div>
+    // Start demo animation after page load
+    setTimeout(addMessage, 3000);
+  </script>
 </body>
 </html>
