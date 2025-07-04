@@ -162,17 +162,13 @@ class ContactFormHandler {
 
     console.log('Calling Edge Function via Supabase client...');
 
-const { data, error } = await window.supabaseClient.functions.invoke('send-lead-notification', {
-  body: {
-    ...leadData,
-    source: 'website',
-    status: 'new'
-  },
-  headers: {
-    Authorization: `Bearer ${window.SUPABASE_ANON_KEY}`
-  }
-});
-
+    const { data, error } = await window.supabaseClient.functions.invoke('send-lead-notification', {
+      body: {
+        ...leadData,
+        source: 'website',
+        status: 'new'
+      }
+    });
 
     if (error) {
       console.error('Edge Function failed:', error);
@@ -210,7 +206,7 @@ const { data, error } = await window.supabaseClient.functions.invoke('send-lead-
     }
   }
 }
-
+}
 
 // Initialize the contact form handler when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
