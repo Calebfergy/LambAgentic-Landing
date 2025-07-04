@@ -114,13 +114,15 @@ const statsObserver = new IntersectionObserver((entries) => {
       // Extract number from text (e.g., "50+" -> 50)
       const number = parseInt(value.replace(/\D/g, ''));
       if (!isNaN(number)) {
+        // Store the original value to restore later
+        const originalValue = value;
         target.textContent = '0';
         setTimeout(() => {
           animateCounter(target, number);
-          // Add back any suffix
+          // Add back any suffix after animation
           setTimeout(() => {
-            if (value.includes('+')) target.textContent = number + '+';
-            if (value.includes('%')) target.textContent = number + '%';
+            if (originalValue.includes('+')) target.textContent = number + '+';
+            if (originalValue.includes('%')) target.textContent = number + '%';
           }, 2000);
         }, 500);
       }
