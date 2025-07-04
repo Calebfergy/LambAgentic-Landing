@@ -4,20 +4,51 @@ class ContactFormHandler {
     this.form = document.querySelector('.form');
     this.submitButton = null;
     this.originalButtonText = '';
+    this.supabaseClient = null;
     
     if (this.form) {
       this.init();
     }
   }
 
-  init() {
+  async init() {
     this.submitButton = this.form.querySelector('button[type="submit"]');
     this.originalButtonText = this.submitButton?.textContent || 'Send Message';
+    
+    // Initialize Supabase client
+    await this.initSupabase();
     
     this.form.addEventListener('submit', this.handleSubmit.bind(this));
     
     // Add real-time validation
     this.addValidation();
+  }
+
+  async initSupabase() {
+    try {
+      // Check if Supabase is available
+      if (typeof window.supabase === 'undefined') {
+        // Load Supabase client library
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+        document.head.appendChild(script);
+        
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = reject;
+        });
+      }
+
+      // Initialize Supabase client
+      if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+        this.supabaseClient = window.supabase.createClient(
+          window.SUPABASE_URL,
+          window.SUPABASE_ANON_KEY
+        );
+      }
+    } catch (error) {
+      console.warn('Failed to initialize Supabase client:', error);
+    }
   }
 
   addValidation() {
@@ -144,34 +175,86 @@ class ContactFormHandler {
     this.setLoadingState(true);
 
     try {
-      // Get Supabase URL from environment or use a default
-      const supabaseUrl = window.SUPABASE_URL || 'https://your-project.supabase.co';
-      const functionUrl = `${supabaseUrl}/functions/v1/send-lead-notification`;
+      let success = false;
+      let errorMessage = '';
 
-      const response = await fetch(functionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${window.SUPABASE_ANON_KEY || 'your-anon-key'}`
-        },
-        body: JSON.stringify(data)
-      });
+      // Try direct Supabase insertion first
+      if (this.supabaseClient) {
+        try {
+          const { data: leadData, error } = await this.supabaseClient
+            .from('leads')
+            .insert([{
+              name: data.name,
+              email: data.email,
+              company: data.company || null,
+              service: data.service || null,
+              message: data.message,
+              phone: data.phone || null,
+              source: 'website'
+            }])
+            .select()
+            .single();
 
-      const result = await response.json();
+          if (error) {
+            throw error;
+          }
 
-      if (response.ok && result.success) {
+          success = true;
+          console.log('Lead saved successfully:', leadData);
+        } catch (supabaseError) {
+          console.warn('Direct Supabase insertion failed:', supabaseError);
+          errorMessage = supabaseError.message || 'Database error';
+        }
+      }
+
+      // Fallback to Edge Function if direct insertion failed
+      if (!success) {
+        try {
+          const functionUrl = `${window.SUPABASE_URL}/functions/v1/send-lead-notification`;
+          
+          const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`
+            },
+            body: JSON.stringify(data)
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            success = true;
+          } else {
+            throw new Error(result.error || 'Edge function failed');
+          }
+        } catch (functionError) {
+          console.warn('Edge function fallback failed:', functionError);
+          errorMessage = functionError.message || 'Function error';
+        }
+      }
+
+      if (success) {
         this.showSuccess('Thank you for your message! We\'ll get back to you within 24 hours.');
         this.form.reset();
         
         // Track successful submission
         this.trackFormSubmission(data);
       } else {
-        throw new Error(result.error || 'Failed to submit form');
+        throw new Error(errorMessage || 'All submission methods failed');
       }
 
     } catch (error) {
       console.error('Form submission error:', error);
-      this.showError('Sorry, there was an error submitting your message. Please try again or contact us directly at info@lambagentic.com');
+      
+      // Show user-friendly error message
+      if (error.message.includes('leads_email_key')) {
+        this.showError('It looks like you\'ve already submitted a message with this email address. We\'ll get back to you soon!');
+      } else if (error.message.includes('network') || error.message.includes('fetch')) {
+        this.showError('Network error. Please check your internet connection and try again.');
+      } else {
+        this.showError('Sorry, there was an error submitting your message. Please try again or contact us directly at info@lambagentic.com');
+      }
     } finally {
       this.setLoadingState(false);
     }

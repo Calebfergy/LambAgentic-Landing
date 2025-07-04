@@ -5,6 +5,23 @@
 window.SUPABASE_URL = 'https://bjqxrxorcrrtstjkavlo.supabase.co';
 window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqcXhyeG9yY3JydHN0amthdmxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2NzkwNDEsImV4cCI6MjA1ODI1NTA0MX0.DH4CRtcU2IqyMf-xJqAVpfLSZItdYUlpA6sTmBmBxiY';
 
+// Load Supabase client library
+(function() {
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  script.onload = function() {
+    // Initialize global Supabase client
+    if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+      window.supabase = window.supabase || {};
+      console.log('Supabase client library loaded successfully');
+    }
+  };
+  script.onerror = function() {
+    console.error('Failed to load Supabase client library');
+  };
+  document.head.appendChild(script);
+})();
+
 // Function to check if Supabase is properly configured
 function checkSupabaseConfig() {
   if (!window.SUPABASE_URL || window.SUPABASE_URL.includes('your-project-id')) {
@@ -39,5 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
       notice.textContent = 'Contact form is currently being configured. Please contact us directly at info@lambagentic.com';
       form.insertBefore(notice, form.firstChild);
     });
+  } else {
+    console.log('Supabase configuration verified');
   }
 });
