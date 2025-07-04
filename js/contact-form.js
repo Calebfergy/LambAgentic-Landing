@@ -57,6 +57,11 @@ class ContactFormHandler {
     }
 
     clearFieldError(field) {
+        // Check if field and its parent node exist
+        if (!field || !field.parentNode) {
+            return;
+        }
+        
         const errorDiv = field.parentNode.querySelector('.field-error');
         if (errorDiv) {
             errorDiv.remove();
