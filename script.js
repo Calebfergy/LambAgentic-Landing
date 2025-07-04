@@ -129,28 +129,53 @@ const statsObserver = new IntersectionObserver((entries) => {
         }
       }
       
-      // Skip animation for other special characters
-      if (value.includes('x') || value.includes(':')) {
+      // Handle percentage values
+      if (value.includes('%')) {
+        const number = parseInt(value.replace(/\D/g, ''));
+        if (!isNaN(number)) {
+          target.textContent = '0%';
+          setTimeout(() => {
+            animateCounter(target, number);
+            setTimeout(() => {
+              target.textContent = number + '%';
+            }, 2000);
+          }, 500);
+        }
         statsObserver.unobserve(target);
         return;
       }
       
-      // Extract number from text (e.g., "50+" -> 50)
+      // Handle plus values (like "50+")
+      if (value.includes('+')) {
+        const number = parseInt(value.replace(/\D/g, ''));
+        if (!isNaN(number)) {
+          target.textContent = '0';
+          setTimeout(() => {
+            animateCounter(target, number);
+            setTimeout(() => {
+              target.textContent = number + '+';
+            }, 2000);
+          }, 500);
+        }
+        statsObserver.unobserve(target);
+        return;
+      }
+      
+      // Handle plain numbers
       const number = parseInt(value.replace(/\D/g, ''));
-      if (!isNaN(number)) {
-        // Store the original value to restore later
-        const originalValue = value;
+      if (!isNaN(number) && value === number.toString()) {
         target.textContent = '0';
         setTimeout(() => {
           animateCounter(target, number);
-          // Add back any suffix after animation
           setTimeout(() => {
-            if (originalValue.includes('+')) target.textContent = number + '+';
-            if (originalValue.includes('%')) target.textContent = number + '%';
+            target.textContent = number.toString();
           }, 2000);
         }, 500);
+        statsObserver.unobserve(target);
+        return;
       }
       
+      // For any other format, don't animate
       statsObserver.unobserve(target);
     }
   });
