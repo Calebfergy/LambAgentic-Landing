@@ -104,8 +104,8 @@ const statsObserver = new IntersectionObserver((entries) => {
       const target = entry.target;
       const value = target.textContent;
       
-      // Skip animation for non-numeric values like "24/7"
-      if (value.includes('/') || value.includes('x') || isNaN(parseInt(value.charAt(0)))) {
+      // Skip animation for values that contain special characters like "24/7"
+      if (value.includes('/') || value.includes('x') || value.includes(':')) {
         // Don't animate these values, just keep them as-is
         statsObserver.unobserve(target);
         return;
