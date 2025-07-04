@@ -10,10 +10,10 @@ window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
   const script = document.createElement('script');
   script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
   script.onload = function() {
-    // Initialize global Supabase client
-    if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
-      window.supabase = window.supabase || {};
-      console.log('Supabase client library loaded successfully');
+    // Initialize global Supabase client properly
+    if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.supabase) {
+      window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      console.log('Supabase client initialized successfully');
     }
   };
   script.onerror = function() {

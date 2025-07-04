@@ -1,351 +1,216 @@
-// Contact form handler with Supabase integration
 class ContactFormHandler {
   constructor() {
     this.form = document.querySelector('.form');
     this.submitButton = null;
     this.originalButtonText = '';
-    this.supabaseClient = null;
-    
+    this.init();
+  }
+
+  init() {
     if (this.form) {
-      this.init();
-    }
-  }
-
-  async init() {
-    this.submitButton = this.form.querySelector('button[type="submit"]');
-    this.originalButtonText = this.submitButton?.textContent || 'Send Message';
-    
-    // Initialize Supabase client
-    await this.initSupabase();
-    
-    this.form.addEventListener('submit', this.handleSubmit.bind(this));
-    
-    // Add real-time validation
-    this.addValidation();
-  }
-
-  async initSupabase() {
-    try {
-      // Check if Supabase is available
-      if (typeof window.supabase === 'undefined') {
-        // Load Supabase client library
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-        document.head.appendChild(script);
-        
-        await new Promise((resolve, reject) => {
-          script.onload = resolve;
-          script.onerror = reject;
-        });
+      this.submitButton = this.form.querySelector('button[type="submit"]');
+      if (this.submitButton) {
+        this.originalButtonText = this.submitButton.textContent;
       }
-
-      // Initialize Supabase client
-      if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
-        this.supabaseClient = window.supabase.createClient(
-          window.SUPABASE_URL,
-          window.SUPABASE_ANON_KEY
-        );
-      }
-    } catch (error) {
-      console.warn('Failed to initialize Supabase client:', error);
+      this.form.addEventListener('submit', this.handleSubmit.bind(this));
     }
   }
 
-  addValidation() {
-    const emailInput = this.form.querySelector('#email');
-    const nameInput = this.form.querySelector('#name');
-    const messageInput = this.form.querySelector('#message');
-
-    // Email validation
-    if (emailInput) {
-      emailInput.addEventListener('blur', this.validateEmail.bind(this));
-      emailInput.addEventListener('input', this.clearError.bind(this));
-    }
-
-    // Name validation
-    if (nameInput) {
-      nameInput.addEventListener('blur', this.validateName.bind(this));
-      nameInput.addEventListener('input', this.clearError.bind(this));
-    }
-
-    // Message validation
-    if (messageInput) {
-      messageInput.addEventListener('blur', this.validateMessage.bind(this));
-      messageInput.addEventListener('input', this.clearError.bind(this));
+  setButtonState(loading = false, text = null) {
+    if (!this.submitButton) return;
+    
+    this.submitButton.disabled = loading;
+    this.submitButton.textContent = text || (loading ? 'Sending...' : this.originalButtonText);
+    
+    if (loading) {
+      this.submitButton.style.opacity = '0.7';
+      this.submitButton.style.cursor = 'not-allowed';
+    } else {
+      this.submitButton.style.opacity = '1';
+      this.submitButton.style.cursor = 'pointer';
     }
   }
 
-  validateEmail(event) {
-    const email = event.target.value.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
-    if (email && !emailRegex.test(email)) {
-      this.showFieldError(event.target, 'Please enter a valid email address');
-      return false;
+  showMessage(message, type = 'success') {
+    // Remove any existing messages
+    const existingMessage = this.form.querySelector('.form-message');
+    if (existingMessage) {
+      existingMessage.remove();
     }
-    
-    this.clearFieldError(event.target);
-    return true;
-  }
 
-  validateName(event) {
-    const name = event.target.value.trim();
+    // Create new message element
+    const messageElement = document.createElement('div');
+    messageElement.className = 'form-message';
+    messageElement.textContent = message;
     
-    if (name && name.length < 2) {
-      this.showFieldError(event.target, 'Name must be at least 2 characters long');
-      return false;
+    // Style the message
+    const isSuccess = type === 'success';
+    messageElement.style.cssText = `
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-lg);
+      font-size: 0.875rem;
+      font-weight: 500;
+      background: ${isSuccess ? '#d1fae5' : '#fee2e2'};
+      border: 1px solid ${isSuccess ? '#10b981' : '#ef4444'};
+      color: ${isSuccess ? '#065f46' : '#991b1b'};
+    `;
+
+    // Insert message at the top of the form
+    this.form.insertBefore(messageElement, this.form.firstChild);
+
+    // Auto-remove success messages after 5 seconds
+    if (isSuccess) {
+      setTimeout(() => {
+        if (messageElement.parentNode) {
+          messageElement.remove();
+        }
+      }, 5000);
     }
-    
-    this.clearFieldError(event.target);
-    return true;
-  }
-
-  validateMessage(event) {
-    const message = event.target.value.trim();
-    
-    if (message && message.length < 10) {
-      this.showFieldError(event.target, 'Message must be at least 10 characters long');
-      return false;
-    }
-    
-    this.clearFieldError(event.target);
-    return true;
-  }
-
-  showFieldError(field, message) {
-    this.clearFieldError(field);
-    
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'field-error';
-    errorDiv.textContent = message;
-    errorDiv.style.color = 'var(--error)';
-    errorDiv.style.fontSize = '0.875rem';
-    errorDiv.style.marginTop = 'var(--space-xs)';
-    
-    field.parentNode.appendChild(errorDiv);
-    field.style.borderColor = 'var(--error)';
-  }
-
-  clearFieldError(field) {
-    const existingError = field.parentNode.querySelector('.field-error');
-    if (existingError) {
-      existingError.remove();
-    }
-    field.style.borderColor = '';
-  }
-
-  clearError(event) {
-    this.clearFieldError(event.target);
   }
 
   async handleSubmit(event) {
     event.preventDefault();
     
-    // Get form data
-    const formData = new FormData(this.form);
-    const data = {
-      name: formData.get('name')?.toString().trim() || '',
-      email: formData.get('email')?.toString().trim() || '',
-      company: formData.get('company')?.toString().trim() || '',
-      service: formData.get('service')?.toString() || '',
-      message: formData.get('message')?.toString().trim() || '',
-      phone: formData.get('phone')?.toString().trim() || ''
-    };
-
-    // Validate required fields
-    if (!data.name || !data.email || !data.message) {
-      this.showError('Please fill in all required fields (Name, Email, and Message).');
-      return;
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.email)) {
-      this.showError('Please enter a valid email address.');
-      return;
-    }
-
-    // Validate message length
-    if (data.message.length < 10) {
-      this.showError('Please provide a more detailed message (at least 10 characters).');
-      return;
-    }
-
-    // Show loading state
-    this.setLoadingState(true);
+    // Set loading state
+    this.setButtonState(true);
 
     try {
+      // Get form data
+      const formData = new FormData(this.form);
+      const leadData = {
+        name: formData.get('name')?.toString().trim() || '',
+        email: formData.get('email')?.toString().trim() || '',
+        company: formData.get('company')?.toString().trim() || '',
+        phone: formData.get('phone')?.toString().trim() || '',
+        service: formData.get('service')?.toString().trim() || '',
+        message: formData.get('message')?.toString().trim() || ''
+      };
+
+      // Validate required fields
+      if (!leadData.name || !leadData.email || !leadData.message) {
+        throw new Error('Please fill in all required fields (Name, Email, and Message).');
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(leadData.email)) {
+        throw new Error('Please enter a valid email address.');
+      }
+
+      // Try direct database insertion first (primary method)
       let success = false;
       let errorMessage = '';
 
-      // Try direct Supabase insertion first
-      if (this.supabaseClient) {
+      if (window.supabaseClient) {
         try {
-          const { data: leadData, error } = await this.supabaseClient
+          const { data, error } = await window.supabaseClient
             .from('leads')
             .insert([{
-              name: data.name,
-              email: data.email,
-              company: data.company || null,
-              service: data.service || null,
-              message: data.message,
-              phone: data.phone || null,
-              source: 'website'
+              name: leadData.name,
+              email: leadData.email,
+              company: leadData.company || null,
+              service: leadData.service || null,
+              message: leadData.message,
+              phone: leadData.phone || null,
+              source: 'website',
+              status: 'new'
             }])
             .select()
             .single();
 
           if (error) {
-            throw error;
+            console.error('Direct database insertion failed:', error);
+            errorMessage = error.message;
+          } else {
+            success = true;
+            console.log('Lead saved successfully via direct insertion:', data);
           }
-
-          success = true;
-          console.log('Lead saved successfully:', leadData);
-        } catch (supabaseError) {
-          console.warn('Direct Supabase insertion failed:', supabaseError);
-          errorMessage = supabaseError.message || 'Database error';
+        } catch (dbError) {
+          console.error('Database error:', dbError);
+          errorMessage = dbError.message;
         }
       }
 
-      // Fallback to Edge Function if direct insertion failed
+      // If direct insertion failed, try edge function as fallback
       if (!success) {
         try {
           const functionUrl = `${window.SUPABASE_URL}/functions/v1/send-lead-notification`;
-          
           const response = await fetch(functionUrl, {
             method: 'POST',
             headers: {
+              'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`,
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(leadData)
           });
 
-          const result = await response.json();
-
-          if (response.ok && result.success) {
-            success = true;
-          } else {
-            throw new Error(result.error || 'Edge function failed');
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Edge function failed: ${response.status} - ${errorText}`);
           }
-        } catch (functionError) {
-          console.warn('Edge function fallback failed:', functionError);
-          errorMessage = functionError.message || 'Function error';
+
+          const result = await response.json();
+          if (result.success) {
+            success = true;
+            console.log('Lead saved successfully via edge function:', result);
+          } else {
+            throw new Error(result.error || 'Edge function returned unsuccessful result');
+          }
+        } catch (edgeError) {
+          console.error('Edge function error:', edgeError);
+          errorMessage = edgeError.message;
         }
       }
 
       if (success) {
-        this.showSuccess('Thank you for your message! We\'ll get back to you within 24 hours.');
+        // Show success message
+        this.showMessage('Thank you for your message! We\'ll get back to you within 24 hours.', 'success');
+        
+        // Reset form
         this.form.reset();
         
-        // Track successful submission
-        this.trackFormSubmission(data);
+        // Optional: Track the conversion (if you have analytics)
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'form_submit', {
+            event_category: 'Contact',
+            event_label: 'Lead Form'
+          });
+        }
       } else {
-        throw new Error(errorMessage || 'All submission methods failed');
+        // Show error message with fallback contact info
+        this.showMessage(
+          `We're experiencing technical difficulties. Please contact us directly at info@lambagentic.com or call +1 (208) 361-1518. Error: ${errorMessage}`, 
+          'error'
+        );
       }
 
     } catch (error) {
       console.error('Form submission error:', error);
-      
-      // Show user-friendly error message
-      if (error.message.includes('leads_email_key')) {
-        this.showError('It looks like you\'ve already submitted a message with this email address. We\'ll get back to you soon!');
-      } else if (error.message.includes('network') || error.message.includes('fetch')) {
-        this.showError('Network error. Please check your internet connection and try again.');
-      } else {
-        this.showError('Sorry, there was an error submitting your message. Please try again or contact us directly at info@lambagentic.com');
-      }
+      this.showMessage(
+        `There was an error sending your message. Please try again or contact us directly at info@lambagentic.com. Error: ${error.message}`, 
+        'error'
+      );
     } finally {
-      this.setLoadingState(false);
+      // Reset button state
+      this.setButtonState(false);
     }
-  }
-
-  setLoadingState(loading) {
-    if (!this.submitButton) return;
-
-    if (loading) {
-      this.submitButton.disabled = true;
-      this.submitButton.textContent = 'Sending...';
-      this.submitButton.style.opacity = '0.7';
-    } else {
-      this.submitButton.disabled = false;
-      this.submitButton.textContent = this.originalButtonText;
-      this.submitButton.style.opacity = '1';
-    }
-  }
-
-  showError(message) {
-    this.removeMessages();
-    
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'form-message form-error';
-    errorDiv.textContent = message;
-    errorDiv.style.cssText = `
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      color: #dc2626;
-      padding: var(--space-md);
-      border-radius: var(--radius-md);
-      margin-bottom: var(--space-lg);
-      font-size: 0.875rem;
-    `;
-    
-    this.form.insertBefore(errorDiv, this.form.firstChild);
-    
-    // Scroll to error message
-    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-
-  showSuccess(message) {
-    this.removeMessages();
-    
-    const successDiv = document.createElement('div');
-    successDiv.className = 'form-message form-success';
-    successDiv.textContent = message;
-    successDiv.style.cssText = `
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      color: #166534;
-      padding: var(--space-md);
-      border-radius: var(--radius-md);
-      margin-bottom: var(--space-lg);
-      font-size: 0.875rem;
-    `;
-    
-    this.form.insertBefore(successDiv, this.form.firstChild);
-    
-    // Scroll to success message
-    successDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-
-  removeMessages() {
-    const existingMessages = this.form.querySelectorAll('.form-message');
-    existingMessages.forEach(msg => msg.remove());
-  }
-
-  trackFormSubmission(data) {
-    // Track form submission for analytics
-    if (typeof gtag !== 'undefined') {
-      gtag('event', 'form_submit', {
-        event_category: 'Contact',
-        event_label: data.service || 'General Inquiry',
-        value: 1
-      });
-    }
-
-    // You can add other analytics tracking here
-    console.log('Form submitted successfully:', {
-      service: data.service,
-      hasCompany: !!data.company,
-      hasPhone: !!data.phone
-    });
   }
 }
 
-// Initialize contact form handler when DOM is loaded
+// Initialize the contact form handler when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  new ContactFormHandler();
+  // Wait a bit for Supabase to initialize
+  setTimeout(() => {
+    new ContactFormHandler();
+  }, 1000);
 });
 
-// Export for potential use in other scripts
-window.ContactFormHandler = ContactFormHandler;
+// Also initialize if Supabase loads later
+window.addEventListener('load', () => {
+  if (!window.contactFormHandler) {
+    setTimeout(() => {
+      window.contactFormHandler = new ContactFormHandler();
+    }, 2000);
+  }
+});

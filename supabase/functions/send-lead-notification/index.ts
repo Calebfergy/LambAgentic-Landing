@@ -23,10 +23,21 @@ Deno.serve(async (req: Request) => {
 
   try {
     // Initialize Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing Supabase environment variables');
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
 
     // Parse request body
     const leadData: LeadData = await req.json();
@@ -64,7 +75,8 @@ Deno.serve(async (req: Request) => {
         service: leadData.service || null,
         message: leadData.message,
         phone: leadData.phone || null,
-        source: 'website'
+        source: 'website',
+        status: 'new'
       }])
       .select()
       .single();
@@ -72,7 +84,7 @@ Deno.serve(async (req: Request) => {
     if (dbError) {
       console.error('Database error:', dbError);
       return new Response(
-        JSON.stringify({ error: 'Failed to save lead information' }),
+        JSON.stringify({ error: 'Failed to save lead information', details: dbError.message }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -80,7 +92,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Prepare email content
+    // Prepare email content for notification
     const emailSubject = `New Lead from ${leadData.name} - LambAgentic Website`;
     const emailBody = `
 New lead submission from LambAgentic website:
@@ -101,28 +113,38 @@ Submitted: ${new Date(lead.created_at).toLocaleString()}
 This lead has been automatically saved to your Supabase database.
     `.trim();
 
-    // Send email notification using a simple email service
-    // Note: In production, you'd want to use a proper email service like SendGrid, Resend, etc.
-    const emailResponse = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'noreply@lambagentic.com',
-        to: ['info@lambagentic.com'],
-        subject: emailSubject,
-        text: emailBody,
-        html: emailBody.replace(/\n/g, '<br>'),
-      }),
-    });
-
+    // Try to send email notification (optional - won't fail if email service is not configured)
     let emailSent = false;
-    if (emailResponse.ok) {
-      emailSent = true;
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    
+    if (resendApiKey) {
+      try {
+        const emailResponse = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'noreply@lambagentic.com',
+            to: ['info@lambagentic.com'],
+            subject: emailSubject,
+            text: emailBody,
+            html: emailBody.replace(/\n/g, '<br>'),
+          }),
+        });
+
+        if (emailResponse.ok) {
+          emailSent = true;
+          console.log('Email notification sent successfully');
+        } else {
+          console.error('Email sending failed:', await emailResponse.text());
+        }
+      } catch (emailError) {
+        console.error('Email service error:', emailError);
+      }
     } else {
-      console.error('Email sending failed:', await emailResponse.text());
+      console.log('Email service not configured (RESEND_API_KEY not set)');
     }
 
     // Return success response
@@ -131,7 +153,7 @@ This lead has been automatically saved to your Supabase database.
         success: true, 
         leadId: lead.id,
         emailSent,
-        message: 'Lead saved successfully' + (emailSent ? ' and notification sent' : ' but email notification failed')
+        message: 'Lead saved successfully' + (emailSent ? ' and notification sent' : '')
       }),
       { 
         status: 200, 
@@ -142,7 +164,7 @@ This lead has been automatically saved to your Supabase database.
   } catch (error) {
     console.error('Function error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', details: error.message }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
