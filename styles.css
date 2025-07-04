@@ -288,13 +288,6 @@ body {
   white-space: nowrap;
 }
 
-.stat-number-inline {
-  display: inline;
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--primary);
-}
-
 .stat-label {
   font-size: 0.875rem;
   color: var(--gray-600);
