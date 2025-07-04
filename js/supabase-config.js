@@ -17,19 +17,6 @@ window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         console.log('Supabase client initialized successfully');
         
         // Test the connection
-          .then(({ error }) => {
-            if (error) {
-              console.warn('Supabase connection test failed:', error.message);
-              if (error.message.includes('relation "leads" does not exist')) {
-                console.error('The leads table does not exist. Please run the database migration.');
-              }
-            } else {
-              console.log('Supabase connection test successful');
-            }
-          })
-          .catch(err => {
-            console.warn('Supabase connection test error:', err);
-          });
       } catch (initError) {
         console.error('Failed to initialize Supabase client:', initError);
       }
