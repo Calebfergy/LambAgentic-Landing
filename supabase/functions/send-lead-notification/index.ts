@@ -126,7 +126,7 @@ This lead has been automatically saved to your Supabase database.
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'noreply@lambagentic.com',
+            from: 'caleb@lambagentic.com',
             to: ['info@lambagentic.com'],
             subject: emailSubject,
             text: emailBody,
