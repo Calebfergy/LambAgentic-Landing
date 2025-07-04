@@ -154,87 +154,59 @@ class ContactFormHandler {
     }
   }
 
-  async submitLeadViaEdgeFunction(leadData) {
-    try {
-      const functionUrl = `https://bjqxrxorcrrtstjkavlo.supabase.co/functions/v1/send-lead-notification`;
-      
-      console.log('Calling Edge Function:', functionUrl);
-      
-      // Set a timeout for the request
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        console.log('Edge Function request timed out');
-        controller.abort();
-      }, 30000); // 30 second timeout
-      
-      const response = await fetch(functionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...leadData,
-          source: 'website',
-          status: 'new'
-        }),
-        signal: controller.signal
-      });
+ async submitLeadViaEdgeFunction(leadData) {
+  try {
+    if (!window.supabaseClient) {
+      throw new Error('Supabase client not initialized');
+    }
 
-      clearTimeout(timeoutId);
+    console.log('Calling Edge Function via Supabase client...');
 
-      console.log('Edge Function response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Edge Function failed with status:', response.status);
-        console.error('Error response:', errorText);
-        
-        // Try to parse error details
-        let errorMessage = 'Server error occurred';
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.error || errorData.message || errorMessage;
-        } catch (parseError) {
-          // Use the raw error text if JSON parsing fails
-          errorMessage = errorText || errorMessage;
-        }
-        
-        return {
-          success: false,
-          error: `Server responded with error: ${errorMessage}`
-        };
+    const { data, error } = await window.supabaseClient.functions.invoke('send-lead-notification', {
+      body: {
+        ...leadData,
+        source: 'website',
+        status: 'new'
       }
-      
-      const result = await response.json();
-      console.log('Edge Function response:', result);
-      
+    });
+
+    if (error) {
+      console.error('Edge Function failed:', error);
       return {
-        success: true,
-        data: result
+        success: false,
+        error: error.message || 'Edge Function error occurred'
       };
-      
-    } catch (error) {
-      console.error('Edge Function call error:', error);
-      
-      if (error.name === 'AbortError') {
-        return {
-          success: false,
-          error: 'Request timed out. Please try again.'
-        };
-      } else if (error.message.includes('fetch') || error.name === 'TypeError') {
-        return {
-          success: false,
-          error: 'Network connection error. Please check your internet connection and try again.'
-        };
-      } else {
-        return {
-          success: false,
-          error: error.message || 'Unknown error occurred'
-        };
-      }
+    }
+
+    console.log('Edge Function response data:', data);
+
+    return {
+      success: true,
+      data
+    };
+
+  } catch (error) {
+    console.error('Edge Function call error:', error);
+
+    if (error.name === 'AbortError') {
+      return {
+        success: false,
+        error: 'Request timed out. Please try again.'
+      };
+    } else if (error.message.includes('fetch') || error.name === 'TypeError') {
+      return {
+        success: false,
+        error: 'Network connection error. Please check your internet connection and try again.'
+      };
+    } else {
+      return {
+        success: false,
+        error: error.message || 'Unknown error occurred'
+      };
     }
   }
 }
+
 
 // Initialize the contact form handler when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
