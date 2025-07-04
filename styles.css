@@ -277,7 +277,7 @@ body {
 }
 
 .stat-number {
-  display: block;
+  display: inline-block;
   font-size: 2rem;
   font-weight: 700;
   color: var(--primary);
