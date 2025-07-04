@@ -163,41 +163,54 @@ class ContactFormHandler {
     async submitLeadViaEdgeFunction(leadData) {
         console.log('Submitting lead via edge function');
         
-        // Check if Supabase client is available
-        if (typeof window.supabaseClient === 'undefined') {
-            throw new Error('Database connection not available. Please check your configuration.');
-        }
-        
         try {
-            // Call the edge function with proper authorization
-            const { data, error } = await window.supabaseClient.functions.invoke('send-lead-notification', {
-                body: leadData,
+            // Call the edge function directly with fetch
+            const response = await fetch(`${window.SUPABASE_URL}/functions/v1/send-lead-notification`, {
+                method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`,
-                    'Content-Type': 'application/json'
-                }
+                    'Content-Type': 'application/json',
+                    'apikey': window.SUPABASE_ANON_KEY
+                },
+                body: JSON.stringify(leadData)
             });
 
-            if (error) {
-                console.error('Edge Function failed with status:', error.status || 'unknown');
-                console.error('Error response:', error);
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Edge Function failed with status:', response.status);
+                console.error('Error response:', errorText);
                 
-                // Provide user-friendly error messages
-                if (error.message && error.message.includes('Missing authorization header')) {
-                    throw new Error('Server configuration error. Please contact support.');
-                } else if (error.message && error.message.includes('network')) {
-                    throw new Error('Network connection error. Please check your internet connection and try again.');
-                } else {
-                    throw new Error(`Server responded with error: ${error.message || 'Unknown error'}`);
+                let errorMessage;
+                try {
+                    const errorData = JSON.parse(errorText);
+                    errorMessage = errorData.message || errorData.error || 'Unknown error';
+                } catch (parseError) {
+                    errorMessage = errorText || `HTTP ${response.status}`;
                 }
+                
+                throw new Error(`Server responded with error: ${errorMessage}`);
             }
 
-            console.log('Edge function response:', data);
-            return { success: true, leadId: data?.leadId, data };
+            const result = await response.json();
+            console.log('Edge function response:', result);
+            
+            return { 
+                success: true, 
+                leadId: result.leadId, 
+                data: result 
+            };
             
         } catch (error) {
             console.error('Edge function submission error:', error);
-            throw error;
+            
+            // Provide user-friendly error messages
+            if (error.message.includes('Failed to fetch') || error.message.includes('network')) {
+                throw new Error('Network connection error. Please check your internet connection and try again.');
+            } else if (error.message.includes('401') || error.message.includes('authorization')) {
+                throw new Error('Server configuration error. Please contact support.');
+            } else {
+                throw error;
+            }
         }
     }
 
@@ -271,8 +284,8 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing contact form handler');
     
     // Check if Supabase is configured
-    if (typeof window.supabaseClient === 'undefined') {
-        console.warn('Supabase client not found. Make sure supabase-config.js is loaded first.');
+    if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+        console.warn('Supabase not configured. Make sure supabase-config.js is loaded first.');
         
         // Show configuration warning
         const forms = document.querySelectorAll('.form');
