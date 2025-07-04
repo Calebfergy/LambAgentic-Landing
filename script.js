@@ -104,6 +104,13 @@ const statsObserver = new IntersectionObserver((entries) => {
       const target = entry.target;
       const value = target.textContent;
       
+      // Skip animation for non-numeric values like "24/7"
+      if (value.includes('/') || value.includes('x') || isNaN(parseInt(value.charAt(0)))) {
+        // Don't animate these values, just keep them as-is
+        statsObserver.unobserve(target);
+        return;
+      }
+      
       // Extract number from text (e.g., "50+" -> 50)
       const number = parseInt(value.replace(/\D/g, ''));
       if (!isNaN(number)) {
@@ -114,7 +121,6 @@ const statsObserver = new IntersectionObserver((entries) => {
           setTimeout(() => {
             if (value.includes('+')) target.textContent = number + '+';
             if (value.includes('%')) target.textContent = number + '%';
-            if (value.includes('/')) target.textContent = value;
           }, 2000);
         }, 500);
       }
