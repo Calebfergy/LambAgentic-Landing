@@ -162,6 +162,9 @@ CREATE TABLE IF NOT EXISTS leads (
 -- Enable RLS
 ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 
+-- Grant INSERT permission to anonymous users (required for contact form)
+GRANT INSERT ON TABLE leads TO anon;
+
 -- Allow anonymous users to insert leads (for contact form)
 CREATE POLICY "Anyone can insert leads" ON leads
   FOR INSERT TO anon
