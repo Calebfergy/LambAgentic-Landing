@@ -74,11 +74,15 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Insert lead into database
+    // Generate a UUID for the lead (since we can't get it back from the insert)
+    const leadId = crypto.randomUUID();
+
+    // Insert lead into database - don't try to select back since anon doesn't have SELECT permission
     console.log('Attempting to insert lead into database');
-    const { data: lead, error: dbError } = await supabaseClient
+    const { error: dbError } = await supabaseClient
       .from('leads')
       .insert([{
+        id: leadId, // Explicitly set the ID so we know what it is
         name: leadData.name,
         email: leadData.email,
         company: leadData.company || null,
@@ -87,9 +91,7 @@ Deno.serve(async (req: Request) => {
         phone: leadData.phone || null,
         source: 'website',
         status: 'new'
-      }])
-      .select()
-      .single();
+      }]);
 
     if (dbError) {
       console.error('Database error:', dbError);
@@ -102,7 +104,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    console.log('Lead saved successfully with ID:', lead.id);
+    console.log('Lead saved successfully with ID:', leadId);
 
     // Prepare email content for notification
     const emailSubject = `New Lead from ${leadData.name} - LambAgentic Website`;
@@ -118,8 +120,8 @@ Phone: ${leadData.phone || 'Not provided'}
 Message:
 ${leadData.message}
 
-Lead ID: ${lead.id}
-Submitted: ${new Date(lead.created_at).toLocaleString()}
+Lead ID: ${leadId}
+Submitted: ${new Date().toLocaleString()}
 
 ---
 This lead has been automatically saved to your Supabase database.
@@ -133,7 +135,7 @@ This lead has been automatically saved to your Supabase database.
       console.log('Attempting to send email notification via Resend');
       try {
         const emailPayload = {
-          from: 'caleb@lambagentic.com',
+          from: 'noreply@lambagentic.com',
           to: ['info@lambagentic.com'],
           subject: emailSubject,
           text: emailBody,
@@ -209,7 +211,7 @@ This lead has been automatically saved to your Supabase database.
     // Return success response
     const response = { 
       success: true, 
-      leadId: lead.id,
+      leadId: leadId,
       emailSent,
       message: 'Lead saved successfully' + (emailSent ? ' and notification sent' : '')
     };
