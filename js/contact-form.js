@@ -1,6 +1,6 @@
 class ContactFormHandler {
     constructor() {
-        this.form = document.getElementById('contact-form');
+        this.form = document.querySelector('.form');
         this.submitButton = this.form?.querySelector('button[type="submit"]');
         this.successMessage = document.getElementById('success-message');
         this.errorMessage = document.getElementById('error-message');
@@ -90,8 +90,8 @@ class ContactFormHandler {
                 hasMessage: !!formData.message 
             });
             
-            // Submit lead directly to Supabase database
-            const result = await this.submitLeadDirectly(formData);
+            // Submit lead via edge function
+            const result = await this.submitLeadViaEdgeFunction(formData);
             
             if (result.success) {
                 console.log('Lead submitted successfully:', result.leadId);
@@ -100,9 +100,6 @@ class ContactFormHandler {
                 
                 // Track analytics event
                 this.trackFormSubmission('success', result.leadId);
-                
-                // Optionally try to send email notification in background
-                this.sendEmailNotificationInBackground(formData, result.leadId);
             } else {
                 throw new Error(result.error || 'Failed to submit form');
             }
@@ -163,8 +160,8 @@ class ContactFormHandler {
         };
     }
 
-    async submitLeadDirectly(leadData) {
-        console.log('Submitting lead directly to Supabase database');
+    async submitLeadViaEdgeFunction(leadData) {
+        console.log('Submitting lead via edge function');
         
         // Check if Supabase client is available
         if (typeof window.supabaseClient === 'undefined') {
@@ -172,72 +169,35 @@ class ContactFormHandler {
         }
         
         try {
-            // Insert lead directly into database
-            const { data, error } = await window.supabaseClient
-                .from('leads')
-                .insert([{
-                    name: leadData.name,
-                    email: leadData.email,
-                    company: leadData.company || null,
-                    service: leadData.service || null,
-                    message: leadData.message,
-                    phone: leadData.phone || null,
-                    source: 'website',
-                    status: 'new'
-                }])
-                .select()
-                .single();
-
-            if (error) {
-                console.error('Database error:', error);
-                
-                // Provide user-friendly error messages
-                if (error.code === 'PGRST116') {
-                    throw new Error('Database permissions not configured properly. Please contact support.');
-                } else if (error.message.includes('duplicate key')) {
-                    throw new Error('This submission appears to be a duplicate. Please try again.');
-                } else if (error.message.includes('network')) {
-                    throw new Error('Network connection error. Please check your internet connection and try again.');
-                } else {
-                    throw new Error(`Database error: ${error.message}`);
-                }
-            }
-
-            console.log('Lead saved successfully:', data);
-            return { success: true, leadId: data.id, data };
-            
-        } catch (error) {
-            console.error('Direct submission error:', error);
-            throw error;
-        }
-    }
-
-    async sendEmailNotificationInBackground(leadData, leadId) {
-        // This runs in the background and doesn't affect the user experience
-        console.log('Attempting to send email notification in background');
-        
-        try {
-            // Check if Supabase client is available
-            if (typeof window.supabaseClient === 'undefined') {
-                console.log('Supabase client not available for email notification');
-                return;
-            }
-
-            // Call the edge function for email notification
+            // Call the edge function with proper authorization
             const { data, error } = await window.supabaseClient.functions.invoke('send-lead-notification', {
-                body: {
-                    ...leadData,
-                    leadId: leadId
+                body: leadData,
+                headers: {
+                    'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
                 }
             });
 
             if (error) {
-                console.warn('Email notification failed (this does not affect form submission):', error);
-            } else {
-                console.log('Email notification sent successfully:', data);
+                console.error('Edge Function failed with status:', error.status || 'unknown');
+                console.error('Error response:', error);
+                
+                // Provide user-friendly error messages
+                if (error.message && error.message.includes('Missing authorization header')) {
+                    throw new Error('Server configuration error. Please contact support.');
+                } else if (error.message && error.message.includes('network')) {
+                    throw new Error('Network connection error. Please check your internet connection and try again.');
+                } else {
+                    throw new Error(`Server responded with error: ${error.message || 'Unknown error'}`);
+                }
             }
+
+            console.log('Edge function response:', data);
+            return { success: true, leadId: data?.leadId, data };
+            
         } catch (error) {
-            console.warn('Email notification error (this does not affect form submission):', error);
+            console.error('Edge function submission error:', error);
+            throw error;
         }
     }
 
@@ -315,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn('Supabase client not found. Make sure supabase-config.js is loaded first.');
         
         // Show configuration warning
-        const forms = document.querySelectorAll('#contact-form');
+        const forms = document.querySelectorAll('.form');
         forms.forEach(form => {
             const warning = document.createElement('div');
             warning.style.cssText = `
