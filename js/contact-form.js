@@ -1,0 +1,268 @@
+// Contact form handler with Supabase integration
+class ContactFormHandler {
+  constructor() {
+    this.form = document.querySelector('.form');
+    this.submitButton = null;
+    this.originalButtonText = '';
+    
+    if (this.form) {
+      this.init();
+    }
+  }
+
+  init() {
+    this.submitButton = this.form.querySelector('button[type="submit"]');
+    this.originalButtonText = this.submitButton?.textContent || 'Send Message';
+    
+    this.form.addEventListener('submit', this.handleSubmit.bind(this));
+    
+    // Add real-time validation
+    this.addValidation();
+  }
+
+  addValidation() {
+    const emailInput = this.form.querySelector('#email');
+    const nameInput = this.form.querySelector('#name');
+    const messageInput = this.form.querySelector('#message');
+
+    // Email validation
+    if (emailInput) {
+      emailInput.addEventListener('blur', this.validateEmail.bind(this));
+      emailInput.addEventListener('input', this.clearError.bind(this));
+    }
+
+    // Name validation
+    if (nameInput) {
+      nameInput.addEventListener('blur', this.validateName.bind(this));
+      nameInput.addEventListener('input', this.clearError.bind(this));
+    }
+
+    // Message validation
+    if (messageInput) {
+      messageInput.addEventListener('blur', this.validateMessage.bind(this));
+      messageInput.addEventListener('input', this.clearError.bind(this));
+    }
+  }
+
+  validateEmail(event) {
+    const email = event.target.value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (email && !emailRegex.test(email)) {
+      this.showFieldError(event.target, 'Please enter a valid email address');
+      return false;
+    }
+    
+    this.clearFieldError(event.target);
+    return true;
+  }
+
+  validateName(event) {
+    const name = event.target.value.trim();
+    
+    if (name && name.length < 2) {
+      this.showFieldError(event.target, 'Name must be at least 2 characters long');
+      return false;
+    }
+    
+    this.clearFieldError(event.target);
+    return true;
+  }
+
+  validateMessage(event) {
+    const message = event.target.value.trim();
+    
+    if (message && message.length < 10) {
+      this.showFieldError(event.target, 'Message must be at least 10 characters long');
+      return false;
+    }
+    
+    this.clearFieldError(event.target);
+    return true;
+  }
+
+  showFieldError(field, message) {
+    this.clearFieldError(field);
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'field-error';
+    errorDiv.textContent = message;
+    errorDiv.style.color = 'var(--error)';
+    errorDiv.style.fontSize = '0.875rem';
+    errorDiv.style.marginTop = 'var(--space-xs)';
+    
+    field.parentNode.appendChild(errorDiv);
+    field.style.borderColor = 'var(--error)';
+  }
+
+  clearFieldError(field) {
+    const existingError = field.parentNode.querySelector('.field-error');
+    if (existingError) {
+      existingError.remove();
+    }
+    field.style.borderColor = '';
+  }
+
+  clearError(event) {
+    this.clearFieldError(event.target);
+  }
+
+  async handleSubmit(event) {
+    event.preventDefault();
+    
+    // Get form data
+    const formData = new FormData(this.form);
+    const data = {
+      name: formData.get('name')?.toString().trim() || '',
+      email: formData.get('email')?.toString().trim() || '',
+      company: formData.get('company')?.toString().trim() || '',
+      service: formData.get('service')?.toString() || '',
+      message: formData.get('message')?.toString().trim() || '',
+      phone: formData.get('phone')?.toString().trim() || ''
+    };
+
+    // Validate required fields
+    if (!data.name || !data.email || !data.message) {
+      this.showError('Please fill in all required fields (Name, Email, and Message).');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+      this.showError('Please enter a valid email address.');
+      return;
+    }
+
+    // Validate message length
+    if (data.message.length < 10) {
+      this.showError('Please provide a more detailed message (at least 10 characters).');
+      return;
+    }
+
+    // Show loading state
+    this.setLoadingState(true);
+
+    try {
+      // Get Supabase URL from environment or use a default
+      const supabaseUrl = window.SUPABASE_URL || 'https://your-project.supabase.co';
+      const functionUrl = `${supabaseUrl}/functions/v1/send-lead-notification`;
+
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${window.SUPABASE_ANON_KEY || 'your-anon-key'}`
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        this.showSuccess('Thank you for your message! We\'ll get back to you within 24 hours.');
+        this.form.reset();
+        
+        // Track successful submission
+        this.trackFormSubmission(data);
+      } else {
+        throw new Error(result.error || 'Failed to submit form');
+      }
+
+    } catch (error) {
+      console.error('Form submission error:', error);
+      this.showError('Sorry, there was an error submitting your message. Please try again or contact us directly at info@lambagentic.com');
+    } finally {
+      this.setLoadingState(false);
+    }
+  }
+
+  setLoadingState(loading) {
+    if (!this.submitButton) return;
+
+    if (loading) {
+      this.submitButton.disabled = true;
+      this.submitButton.textContent = 'Sending...';
+      this.submitButton.style.opacity = '0.7';
+    } else {
+      this.submitButton.disabled = false;
+      this.submitButton.textContent = this.originalButtonText;
+      this.submitButton.style.opacity = '1';
+    }
+  }
+
+  showError(message) {
+    this.removeMessages();
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'form-message form-error';
+    errorDiv.textContent = message;
+    errorDiv.style.cssText = `
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-lg);
+      font-size: 0.875rem;
+    `;
+    
+    this.form.insertBefore(errorDiv, this.form.firstChild);
+    
+    // Scroll to error message
+    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  showSuccess(message) {
+    this.removeMessages();
+    
+    const successDiv = document.createElement('div');
+    successDiv.className = 'form-message form-success';
+    successDiv.textContent = message;
+    successDiv.style.cssText = `
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-lg);
+      font-size: 0.875rem;
+    `;
+    
+    this.form.insertBefore(successDiv, this.form.firstChild);
+    
+    // Scroll to success message
+    successDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  removeMessages() {
+    const existingMessages = this.form.querySelectorAll('.form-message');
+    existingMessages.forEach(msg => msg.remove());
+  }
+
+  trackFormSubmission(data) {
+    // Track form submission for analytics
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'form_submit', {
+        event_category: 'Contact',
+        event_label: data.service || 'General Inquiry',
+        value: 1
+      });
+    }
+
+    // You can add other analytics tracking here
+    console.log('Form submitted successfully:', {
+      service: data.service,
+      hasCompany: !!data.company,
+      hasPhone: !!data.phone
+    });
+  }
+}
+
+// Initialize contact form handler when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  new ContactFormHandler();
+});
+
+// Export for potential use in other scripts
+window.ContactFormHandler = ContactFormHandler;
