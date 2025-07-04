@@ -12,8 +12,28 @@ window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
   script.onload = function() {
     // Initialize global Supabase client properly
     if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.supabase) {
-      window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-      console.log('Supabase client initialized successfully');
+      try {
+        window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        console.log('Supabase client initialized successfully');
+        
+        // Test the connection
+        window.supabaseClient.from('leads').select('count', { count: 'exact', head: true })
+          .then(({ error }) => {
+            if (error) {
+              console.warn('Supabase connection test failed:', error.message);
+              if (error.message.includes('relation "leads" does not exist')) {
+                console.error('The leads table does not exist. Please run the database migration.');
+              }
+            } else {
+              console.log('Supabase connection test successful');
+            }
+          })
+          .catch(err => {
+            console.warn('Supabase connection test error:', err);
+          });
+      } catch (initError) {
+        console.error('Failed to initialize Supabase client:', initError);
+      }
     }
   };
   script.onerror = function() {

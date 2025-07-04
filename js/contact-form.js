@@ -69,6 +69,16 @@ class ContactFormHandler {
     }
   }
 
+  async waitForSupabase(maxAttempts = 10, delay = 500) {
+    for (let i = 0; i < maxAttempts; i++) {
+      if (window.supabaseClient) {
+        return true;
+      }
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+    return false;
+  }
+
   async handleSubmit(event) {
     event.preventDefault();
     
@@ -98,102 +108,133 @@ class ContactFormHandler {
         throw new Error('Please enter a valid email address.');
       }
 
-      // Try direct database insertion first (primary method)
-      let success = false;
-      let errorMessage = '';
-
-      if (window.supabaseClient) {
-        try {
-          const { data, error } = await window.supabaseClient
-            .from('leads')
-            .insert([{
-              name: leadData.name,
-              email: leadData.email,
-              company: leadData.company || null,
-              service: leadData.service || null,
-              message: leadData.message,
-              phone: leadData.phone || null,
-              source: 'website',
-              status: 'new'
-            }])
-            .select()
-            .single();
-
-          if (error) {
-            console.error('Direct database insertion failed:', error);
-            errorMessage = error.message;
-          } else {
-            success = true;
-            console.log('Lead saved successfully via direct insertion:', data);
-          }
-        } catch (dbError) {
-          console.error('Database error:', dbError);
-          errorMessage = dbError.message;
-        }
+      // Wait for Supabase to be ready
+      const supabaseReady = await this.waitForSupabase();
+      
+      if (!supabaseReady || !window.supabaseClient) {
+        throw new Error('Database connection not available. Please try again in a moment or contact us directly.');
       }
 
-      // If direct insertion failed, try edge function as fallback
-      if (!success) {
-        try {
-          const functionUrl = `${window.SUPABASE_URL}/functions/v1/send-lead-notification`;
-          const response = await fetch(functionUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(leadData)
-          });
+      // Try direct database insertion (primary method)
+      console.log('Attempting to save lead to database...');
+      
+      const { data, error } = await window.supabaseClient
+        .from('leads')
+        .insert([{
+          name: leadData.name,
+          email: leadData.email,
+          company: leadData.company || null,
+          service: leadData.service || null,
+          message: leadData.message,
+          phone: leadData.phone || null,
+          source: 'website',
+          status: 'new'
+        }])
+        .select()
+        .single();
 
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Edge function failed: ${response.status} - ${errorText}`);
-          }
-
-          const result = await response.json();
-          if (result.success) {
-            success = true;
-            console.log('Lead saved successfully via edge function:', result);
-          } else {
-            throw new Error(result.error || 'Edge function returned unsuccessful result');
-          }
-        } catch (edgeError) {
-          console.error('Edge function error:', edgeError);
-          errorMessage = edgeError.message;
-        }
-      }
-
-      if (success) {
-        // Show success message
-        this.showMessage('Thank you for your message! We\'ll get back to you within 24 hours.', 'success');
+      if (error) {
+        console.error('Database insertion failed:', error);
         
-        // Reset form
-        this.form.reset();
-        
-        // Optional: Track the conversion (if you have analytics)
-        if (typeof gtag !== 'undefined') {
-          gtag('event', 'form_submit', {
-            event_category: 'Contact',
-            event_label: 'Lead Form'
-          });
+        // Check if it's a permission/RLS error
+        if (error.code === '42501' || error.message.includes('permission') || error.message.includes('RLS')) {
+          throw new Error('Database permissions not configured properly. Please contact support.');
         }
-      } else {
-        // Show error message with fallback contact info
-        this.showMessage(
-          `We're experiencing technical difficulties. Please contact us directly at info@lambagentic.com or call +1 (208) 361-1518. Error: ${errorMessage}`, 
-          'error'
-        );
+        
+        // Check if it's a connection error
+        if (error.message.includes('fetch') || error.message.includes('network')) {
+          throw new Error('Network connection error. Please check your internet connection and try again.');
+        }
+        
+        throw new Error(`Database error: ${error.message}`);
       }
+
+      // Success!
+      console.log('Lead saved successfully:', data);
+      
+      // Show success message
+      this.showMessage('Thank you for your message! We\'ll get back to you within 24 hours.', 'success');
+      
+      // Reset form
+      this.form.reset();
+      
+      // Optional: Track the conversion (if you have analytics)
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'form_submit', {
+          event_category: 'Contact',
+          event_label: 'Lead Form'
+        });
+      }
+
+      // Try to send email notification in the background (optional)
+      this.sendEmailNotification(leadData, data.id).catch(emailError => {
+        console.warn('Email notification failed (this is optional):', emailError);
+        // Don't show error to user since the main form submission succeeded
+      });
 
     } catch (error) {
       console.error('Form submission error:', error);
-      this.showMessage(
-        `There was an error sending your message. Please try again or contact us directly at info@lambagentic.com. Error: ${error.message}`, 
-        'error'
-      );
+      
+      // Provide specific error messages based on error type
+      let userMessage = 'There was an error sending your message. ';
+      
+      if (error.message.includes('Database connection not available')) {
+        userMessage += 'Please try again in a moment or contact us directly at info@lambagentic.com.';
+      } else if (error.message.includes('permissions') || error.message.includes('RLS')) {
+        userMessage += 'Our system is currently being configured. Please contact us directly at info@lambagentic.com or call +1 (208) 361-1518.';
+      } else if (error.message.includes('Network connection')) {
+        userMessage += 'Please check your internet connection and try again.';
+      } else if (error.message.includes('Please fill in') || error.message.includes('valid email')) {
+        userMessage = error.message; // Use the validation error message directly
+      } else {
+        userMessage += `Please try again or contact us directly at info@lambagentic.com. Error: ${error.message}`;
+      }
+      
+      this.showMessage(userMessage, 'error');
     } finally {
       // Reset button state
       this.setButtonState(false);
+    }
+  }
+
+  async sendEmailNotification(leadData, leadId) {
+    // Only attempt email notification if we have the required configuration
+    if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+      console.log('Skipping email notification - Supabase not configured');
+      return;
+    }
+
+    try {
+      const functionUrl = `${window.SUPABASE_URL}/functions/v1/send-lead-notification`;
+      
+      // Set a shorter timeout for the email notification since it's optional
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...leadData, leadId }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Email notification sent successfully:', result);
+      } else {
+        console.warn('Email notification failed with status:', response.status);
+      }
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.warn('Email notification timed out (this is optional)');
+      } else {
+        console.warn('Email notification error (this is optional):', error);
+      }
     }
   }
 }
@@ -202,7 +243,9 @@ class ContactFormHandler {
 document.addEventListener('DOMContentLoaded', () => {
   // Wait a bit for Supabase to initialize
   setTimeout(() => {
-    new ContactFormHandler();
+    if (!window.contactFormHandler) {
+      window.contactFormHandler = new ContactFormHandler();
+    }
   }, 1000);
 });
 
