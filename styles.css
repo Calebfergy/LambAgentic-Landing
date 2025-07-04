@@ -284,6 +284,11 @@ body {
 }
 
 .stat-number-inline {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.stat-number-inline {
   display: inline;
   font-size: 2rem;
   font-weight: 700;
