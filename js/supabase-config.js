@@ -17,7 +17,6 @@ window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         console.log('Supabase client initialized successfully');
         
         // Test the connection
-        window.supabaseClient.from('leads').select('count', { count: 'exact', head: true })
           .then(({ error }) => {
             if (error) {
               console.warn('Supabase connection test failed:', error.message);
