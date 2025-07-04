@@ -57,46 +57,6 @@ window.addEventListener('scroll', () => {
   }
 });
 
-// Form submission handler
-const contactForm = document.querySelector('.form');
-if (contactForm) {
-  contactForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    // Get form data
-    const formData = new FormData(this);
-    const data = Object.fromEntries(formData);
-    
-    // Simple validation
-    if (!data.name || !data.email || !data.message) {
-      alert('Please fill in all required fields.');
-      return;
-    }
-    
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.email)) {
-      alert('Please enter a valid email address.');
-      return;
-    }
-    
-    // Simulate form submission
-    const submitButton = this.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
-    
-    submitButton.textContent = 'Sending...';
-    submitButton.disabled = true;
-    
-    // Simulate API call
-    setTimeout(() => {
-      alert('Thank you for your message! We\'ll get back to you soon.');
-      this.reset();
-      submitButton.textContent = originalText;
-      submitButton.disabled = false;
-    }, 2000);
-  });
-}
-
 // Intersection Observer for animations
 const observerOptions = {
   threshold: 0.1,
