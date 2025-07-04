@@ -118,20 +118,34 @@ class ContactFormHandler {
       // Try direct database insertion (primary method)
       console.log('Attempting to save lead to database...');
       
-      const { data, error } = await window.supabaseClient
-        .from('leads')
-        .insert([{
-          name: leadData.name,
-          email: leadData.email,
-          company: leadData.company || null,
-          service: leadData.service || null,
-          message: leadData.message,
-          phone: leadData.phone || null,
-          source: 'website',
-          status: 'new'
-        }])
-        .select()
-        .single();
+      let insertResult;
+      try {
+        insertResult = await window.supabaseClient
+          .from('leads')
+          .insert([{
+            name: leadData.name,
+            email: leadData.email,
+            company: leadData.company || null,
+            service: leadData.service || null,
+            message: leadData.message,
+            phone: leadData.phone || null,
+            source: 'website',
+            status: 'new'
+          }])
+          .select()
+          .single();
+      } catch (fetchError) {
+        console.error('Network error during database insertion:', fetchError);
+        
+        // Check if it's a network connectivity issue
+        if (fetchError.message.includes('fetch') || fetchError.name === 'TypeError') {
+          throw new Error('Network connection error. Please check your internet connection and try again.');
+        }
+        
+        throw fetchError;
+      }
+
+      const { data, error } = insertResult;
 
       if (error) {
         console.error('Database insertion failed:', error);
@@ -207,9 +221,14 @@ class ContactFormHandler {
     try {
       const functionUrl = `${window.SUPABASE_URL}/functions/v1/send-lead-notification`;
       
+      console.log('Attempting to call edge function:', functionUrl);
+      
       // Set a shorter timeout for the email notification since it's optional
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => {
+        console.log('Email notification request timed out');
+        controller.abort();
+      }, 15000); // 15 second timeout
       
       const response = await fetch(functionUrl, {
         method: 'POST',
@@ -223,17 +242,26 @@ class ContactFormHandler {
 
       clearTimeout(timeoutId);
 
+      console.log('Edge function response status:', response.status);
+      
       if (response.ok) {
         const result = await response.json();
         console.log('Email notification sent successfully:', result);
       } else {
+        const errorText = await response.text();
         console.warn('Email notification failed with status:', response.status);
+        console.warn('Error response:', errorText);
       }
     } catch (error) {
       if (error.name === 'AbortError') {
         console.warn('Email notification timed out (this is optional)');
       } else {
         console.warn('Email notification error (this is optional):', error);
+        console.warn('Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
       }
     }
   }
