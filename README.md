@@ -26,9 +26,13 @@ The contact form works perfectly without email notifications - leads are saved t
 1. **Get a Resend API Key** (Optional)
    - Sign up at [resend.com](https://resend.com)
    - Create an API key
-   - Add the API key to your Supabase project's environment variables as `RESEND_API_KEY`
 
-2. **Deploy Edge Function** (Optional)
+2. **Configure Supabase Environment Variables** (Optional)
+   - In your Supabase dashboard, go to Project Settings → Environment Variables
+   - Add `RESEND_API_KEY` with your Resend API key
+   - Add `SUPABASE_SERVICE_ROLE_KEY` with your project's service role key (found in Project Settings → API)
+
+3. **Deploy Edge Function** (Optional)
    - The edge function in `supabase/functions/send-lead-notification/index.ts` handles email notifications
    - Deploy it using: `supabase functions deploy send-lead-notification`
    - Configure the `from` email address to match your verified domain
@@ -52,14 +56,16 @@ The contact form works perfectly without email notifications - leads are saved t
 ## How It Works
 
 ### Primary Method: Direct Database Storage
-- Form submissions are saved directly to the Supabase `leads` table
+- Form submissions are saved directly to the Supabase `leads` table using the anonymous user permissions
 - This is the primary method and works independently of email notifications
+- Uses Row Level Security (RLS) policies that allow anonymous users to insert leads
 - Provides immediate confirmation to users
-- All form data is preserved even if email fails
+- All form data is preserved and accessible through the Supabase dashboard
 
 ### Secondary Method: Email Notifications (Optional)
-- If configured, sends email notifications in the background
+- If configured, sends email notifications in the background after successful form submission
 - Uses Supabase Edge Function with Resend API
+- Requires both `RESEND_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` environment variables
 - Failure of email notifications doesn't affect form submission success
 - Provides additional alerting for new leads
 
@@ -71,18 +77,20 @@ The contact form works perfectly without email notifications - leads are saved t
 - **Success Feedback**: Clear confirmation when form is submitted
 - **Responsive Design**: Works on all device sizes
 - **Graceful Degradation**: Works even if email service is unavailable
+- **Direct Database Integration**: No server-side dependencies required
 
 ### Database Integration
 - **Leads Table**: Stores all form submissions with proper indexing
-- **Row Level Security**: Secure data access with proper policies
+- **Row Level Security**: Secure data access with proper policies allowing anonymous inserts
 - **Automatic Timestamps**: Created and updated timestamps
 - **Status Tracking**: Lead status management (new, contacted, qualified, etc.)
+- **Anonymous Access**: Contact form works without user authentication
 
 ### Email Notifications (Optional)
 - **Background Processing**: Doesn't block form submission
 - **Detailed Information**: Includes all form data and lead ID
 - **Fallback Handling**: Form still works even if email fails
-- **Timeout Protection**: Email attempts timeout after 10 seconds
+- **Environment Variable Configuration**: Secure API key management
 
 ### Analytics Ready
 - **Form Tracking**: Built-in analytics event tracking
@@ -110,8 +118,8 @@ The contact form works perfectly without email notifications - leads are saved t
 
 - **Input Validation**: Client and server-side validation of all form inputs
 - **SQL Injection Protection**: Parameterized queries via Supabase
-- **CORS Protection**: Proper CORS headers on edge function
-- **Rate Limiting**: Built-in Supabase rate limiting
+- **Row Level Security**: Database-level access control
+- **Anonymous Insert Only**: RLS policies prevent unauthorized data access
 - **Data Sanitization**: Clean and validate all user inputs
 
 ## Troubleshooting
@@ -129,15 +137,24 @@ The contact form works perfectly without email notifications - leads are saved t
 - **"Please fill in all required fields"**: Form validation errors
 
 ### Database Setup Issues
-1. **Run the migration**: Ensure `create_leads_table.sql` has been executed
+1. **Run the migration**: Ensure the database migration has been executed
 2. **Check RLS policies**: Anonymous users should be able to INSERT into leads table
 3. **Verify table structure**: Ensure all required columns exist
 
 ### Email Not Sending (This is Optional)
-1. Email notifications are optional - the form works without them
-2. Check that `RESEND_API_KEY` is set in Supabase environment variables
-3. Ensure the edge function is deployed: `supabase functions deploy send-lead-notification`
-4. Verify the `from` email domain is verified in Resend
+Email notifications are completely optional - the form works without them. If you want email notifications:
+
+1. **Check Environment Variables**: Ensure both `RESEND_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are set in Supabase Project Settings → Environment Variables
+2. **Verify Edge Function**: Ensure the edge function is deployed: `supabase functions deploy send-lead-notification`
+3. **Check Email Domain**: Verify the `from` email domain is verified in Resend
+4. **Review Function Logs**: Check Supabase Function logs for detailed error messages
+
+### Authorization Errors
+If you see "Missing authorization header" errors:
+- This typically affects only the optional email notification feature
+- The main form submission (database storage) should still work
+- Ensure `SUPABASE_SERVICE_ROLE_KEY` is set in your Supabase project environment variables
+- Redeploy the edge function after setting environment variables
 
 ## Database Migration
 
@@ -162,10 +179,7 @@ CREATE TABLE IF NOT EXISTS leads (
 -- Enable RLS
 ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 
--- Grant INSERT permission to anonymous users (required for contact form)
-GRANT INSERT ON TABLE leads TO anon;
-
--- Allow anonymous users to insert leads (for contact form)
+-- Allow anonymous users to insert leads (required for contact form)
 CREATE POLICY "Anyone can insert leads" ON leads
   FOR INSERT TO anon
   WITH CHECK (true);
@@ -179,6 +193,10 @@ CREATE POLICY "Authenticated users can update leads" ON leads
   FOR UPDATE TO authenticated
   USING (true);
 
+CREATE POLICY "Authenticated users can delete leads" ON leads
+  FOR DELETE TO authenticated
+  USING (true);
+
 -- Add indexes for performance
 CREATE INDEX IF NOT EXISTS idx_leads_email ON leads(email);
 CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
@@ -186,7 +204,7 @@ CREATE INDEX IF NOT EXISTS idx_leads_source ON leads(source);
 CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at DESC);
 
 -- Add constraints
-ALTER TABLE leads ADD CONSTRAINT leads_status_check 
+ALTER TABLE leads ADD CONSTRAINT IF NOT EXISTS leads_status_check 
   CHECK (status IN ('new', 'contacted', 'qualified', 'converted', 'closed'));
 
 -- Add trigger for updated_at
@@ -203,10 +221,26 @@ CREATE TRIGGER update_leads_updated_at
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 ```
 
+## Architecture Overview
+
+The contact form uses a two-tier approach:
+
+1. **Primary Tier**: Direct database insertion using Supabase client with anonymous permissions
+   - Always works if Supabase is configured
+   - No server-side dependencies
+   - Immediate user feedback
+
+2. **Secondary Tier**: Optional email notifications via Edge Function
+   - Runs in background after successful form submission
+   - Requires additional configuration (API keys, environment variables)
+   - Failure doesn't affect primary functionality
+
+This architecture ensures the contact form is reliable and works even with minimal configuration, while providing enhanced features when fully configured.
+
 ## Next Steps
 
 1. **Test the Form**: Submit a test lead and verify it appears in your Supabase database
-2. **Set Up Email** (Optional): Configure Resend API for email notifications
+2. **Set Up Email** (Optional): Configure Resend API and environment variables for email notifications
 3. **Analytics Integration**: Add Google Analytics or other tracking
 4. **Lead Management**: Build admin dashboard for managing leads
 5. **Automation**: Set up automated follow-up sequences

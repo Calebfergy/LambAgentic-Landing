@@ -1,228 +1,346 @@
 class ContactFormHandler {
-  constructor() {
-    this.form = document.querySelector('.form');
-    this.submitButton = null;
-    this.originalButtonText = '';
-    this.init();
-  }
-
-  init() {
-    if (this.form) {
-      this.submitButton = this.form.querySelector('button[type="submit"]');
-      if (this.submitButton) {
-        this.originalButtonText = this.submitButton.textContent;
-      }
-      this.form.addEventListener('submit', this.handleSubmit.bind(this));
-    }
-  }
-
-  setButtonState(loading = false, text = null) {
-    if (!this.submitButton) return;
-    
-    this.submitButton.disabled = loading;
-    this.submitButton.textContent = text || (loading ? 'Sending...' : this.originalButtonText);
-    
-    if (loading) {
-      this.submitButton.style.opacity = '0.7';
-      this.submitButton.style.cursor = 'not-allowed';
-    } else {
-      this.submitButton.style.opacity = '1';
-      this.submitButton.style.cursor = 'pointer';
-    }
-  }
-
-  showMessage(message, type = 'success') {
-    // Remove any existing messages
-    const existingMessage = this.form.querySelector('.form-message');
-    if (existingMessage) {
-      existingMessage.remove();
-    }
-
-    // Create new message element
-    const messageElement = document.createElement('div');
-    messageElement.className = 'form-message';
-    messageElement.textContent = message;
-    
-    // Style the message
-    const isSuccess = type === 'success';
-    messageElement.style.cssText = `
-      padding: var(--space-md);
-      border-radius: var(--radius-md);
-      margin-bottom: var(--space-lg);
-      font-size: 0.875rem;
-      font-weight: 500;
-      background: ${isSuccess ? '#d1fae5' : '#fee2e2'};
-      border: 1px solid ${isSuccess ? '#10b981' : '#ef4444'};
-      color: ${isSuccess ? '#065f46' : '#991b1b'};
-    `;
-
-    // Insert message at the top of the form
-    this.form.insertBefore(messageElement, this.form.firstChild);
-
-    // Auto-remove success messages after 5 seconds
-    if (isSuccess) {
-      setTimeout(() => {
-        if (messageElement.parentNode) {
-          messageElement.remove();
+    constructor() {
+        this.form = document.getElementById('contact-form');
+        this.submitButton = this.form?.querySelector('button[type="submit"]');
+        this.successMessage = document.getElementById('success-message');
+        this.errorMessage = document.getElementById('error-message');
+        
+        if (this.form) {
+            this.init();
         }
-      }, 5000);
     }
-  }
 
-  async handleSubmit(event) {
-    event.preventDefault();
-    
-    // Set loading state
-    this.setButtonState(true);
+    init() {
+        this.form.addEventListener('submit', this.handleSubmit.bind(this));
+        this.setupRealTimeValidation();
+    }
 
-    try {
-      // Get form data
-      const formData = new FormData(this.form);
-      const leadData = {
-        name: formData.get('name')?.toString().trim() || '',
-        email: formData.get('email')?.toString().trim() || '',
-        company: formData.get('company')?.toString().trim() || '',
-        phone: formData.get('phone')?.toString().trim() || '',
-        service: formData.get('service')?.toString().trim() || '',
-        message: formData.get('message')?.toString().trim() || ''
-      };
+    setupRealTimeValidation() {
+        const emailInput = this.form.querySelector('input[name="email"]');
+        if (emailInput) {
+            emailInput.addEventListener('blur', this.validateEmail.bind(this));
+            emailInput.addEventListener('input', this.clearFieldError.bind(this));
+        }
 
-      // Validate required fields
-      if (!leadData.name || !leadData.email || !leadData.message) {
-        throw new Error('Please fill in all required fields (Name, Email, and Message).');
-      }
-
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(leadData.email)) {
-        throw new Error('Please enter a valid email address.');
-      }
-
-      // Check if Supabase configuration is available
-      if (!window.SUPABASE_URL) {
-        throw new Error('Service configuration not available. Please contact us directly at info@lambagentic.com.');
-      }
-
-      // Submit lead data via Edge Function (primary method)
-      console.log('Submitting lead via Edge Function...');
-      
-      const result = await this.submitLeadViaEdgeFunction(leadData);
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to submit lead data');
-      }
-
-      // Success!
-      console.log('Lead submitted successfully:', result.data);
-      
-      // Show success message
-      this.showMessage('Thank you for your message! We\'ll get back to you within 24 hours.', 'success');
-      
-      // Reset form
-      this.form.reset();
-      
-      // Optional: Track the conversion (if you have analytics)
-      if (typeof gtag !== 'undefined') {
-        gtag('event', 'form_submit', {
-          event_category: 'Contact',
-          event_label: 'Lead Form'
+        // Clear errors on input for all fields
+        const inputs = this.form.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => this.clearFieldError(input));
         });
-      }
-
-    } catch (error) {
-      console.error('Form submission error:', error);
-      
-      // Provide specific error messages based on error type
-      let userMessage = 'There was an error sending your message. ';
-      
-      if (error.message.includes('Service configuration not available')) {
-        userMessage = error.message;
-      } else if (error.message.includes('Network connection') || error.message.includes('fetch')) {
-        userMessage += 'Please check your internet connection and try again.';
-      } else if (error.message.includes('Please fill in') || error.message.includes('valid email')) {
-        userMessage = error.message; // Use the validation error message directly
-      } else if (error.message.includes('timeout') || error.message.includes('timed out')) {
-        userMessage += 'The request timed out. Please try again or contact us directly at info@lambagentic.com.';
-      } else {
-        userMessage += `Please try again or contact us directly at info@lambagentic.com. Error: ${error.message}`;
-      }
-      
-      this.showMessage(userMessage, 'error');
-    } finally {
-      // Reset button state
-      this.setButtonState(false);
-    }
-  }
-
- async submitLeadViaEdgeFunction(leadData) {
-  try {
-    if (!window.supabaseClient) {
-      throw new Error('Supabase client not initialized');
     }
 
-    console.log('Calling Edge Function via Supabase client...');
-
-    const { data, error } = await window.supabaseClient.functions.invoke('send-lead-notification', {
-      body: {
-        ...leadData,
-        source: 'website',
-        status: 'new'
-      }
-    });
-
-    if (error) {
-      console.error('Edge Function failed:', error);
-      return {
-        success: false,
-        error: error.message || 'Edge Function error occurred'
-      };
+    validateEmail(event) {
+        const email = event.target.value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (email && !emailRegex.test(email)) {
+            this.showFieldError(event.target, 'Please enter a valid email address');
+            return false;
+        }
+        
+        this.clearFieldError(event.target);
+        return true;
     }
 
-    console.log('Edge Function response data:', data);
-
-    return {
-      success: true,
-      data
-    };
-
-  } catch (error) {
-    console.error('Edge Function call error:', error);
-
-    if (error.name === 'AbortError') {
-      return {
-        success: false,
-        error: 'Request timed out. Please try again.'
-      };
-    } else if (error.message.includes('fetch') || error.name === 'TypeError') {
-      return {
-        success: false,
-        error: 'Network connection error. Please check your internet connection and try again.'
-      };
-    } else {
-      return {
-        success: false,
-        error: error.message || 'Unknown error occurred'
-      };
+    showFieldError(field, message) {
+        this.clearFieldError(field);
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'field-error';
+        errorDiv.textContent = message;
+        errorDiv.style.color = '#dc2626';
+        errorDiv.style.fontSize = '0.875rem';
+        errorDiv.style.marginTop = '0.25rem';
+        
+        field.parentNode.appendChild(errorDiv);
+        field.style.borderColor = '#dc2626';
     }
-  }
-}
+
+    clearFieldError(field) {
+        const errorDiv = field.parentNode.querySelector('.field-error');
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+        field.style.borderColor = '';
+    }
+
+    async handleSubmit(event) {
+        event.preventDefault();
+        
+        console.log('Form submission started');
+        
+        // Clear previous messages
+        this.hideMessages();
+        
+        // Validate form
+        if (!this.validateForm()) {
+            console.log('Form validation failed');
+            return;
+        }
+        
+        // Show loading state
+        this.setLoadingState(true);
+        
+        try {
+            // Get form data
+            const formData = this.getFormData();
+            console.log('Form data collected:', { 
+                name: formData.name, 
+                email: formData.email, 
+                hasMessage: !!formData.message 
+            });
+            
+            // Submit lead directly to Supabase database
+            const result = await this.submitLeadDirectly(formData);
+            
+            if (result.success) {
+                console.log('Lead submitted successfully:', result.leadId);
+                this.showSuccess('Thank you for your message! We\'ll get back to you soon.');
+                this.form.reset();
+                
+                // Track analytics event
+                this.trackFormSubmission('success', result.leadId);
+                
+                // Optionally try to send email notification in background
+                this.sendEmailNotificationInBackground(formData, result.leadId);
+            } else {
+                throw new Error(result.error || 'Failed to submit form');
+            }
+            
+        } catch (error) {
+            console.error('Form submission error:', error);
+            this.showError(`Sorry, there was an error submitting your message: ${error.message}`);
+            this.trackFormSubmission('error', null, error.message);
+        } finally {
+            this.setLoadingState(false);
+        }
+    }
+
+    validateForm() {
+        const requiredFields = ['name', 'email', 'message'];
+        let isValid = true;
+        
+        // Clear all previous field errors
+        const errorDivs = this.form.querySelectorAll('.field-error');
+        errorDivs.forEach(div => div.remove());
+        
+        const inputs = this.form.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            input.style.borderColor = '';
+        });
+        
+        // Check required fields
+        requiredFields.forEach(fieldName => {
+            const field = this.form.querySelector(`[name="${fieldName}"]`);
+            if (!field || !field.value.trim()) {
+                this.showFieldError(field, 'This field is required');
+                isValid = false;
+            }
+        });
+        
+        // Validate email format
+        const emailField = this.form.querySelector('[name="email"]');
+        if (emailField && emailField.value.trim()) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailField.value.trim())) {
+                this.showFieldError(emailField, 'Please enter a valid email address');
+                isValid = false;
+            }
+        }
+        
+        return isValid;
+    }
+
+    getFormData() {
+        const formData = new FormData(this.form);
+        return {
+            name: formData.get('name')?.toString().trim() || '',
+            email: formData.get('email')?.toString().trim() || '',
+            company: formData.get('company')?.toString().trim() || '',
+            service: formData.get('service')?.toString().trim() || '',
+            message: formData.get('message')?.toString().trim() || '',
+            phone: formData.get('phone')?.toString().trim() || ''
+        };
+    }
+
+    async submitLeadDirectly(leadData) {
+        console.log('Submitting lead directly to Supabase database');
+        
+        // Check if Supabase client is available
+        if (typeof window.supabaseClient === 'undefined') {
+            throw new Error('Database connection not available. Please check your configuration.');
+        }
+        
+        try {
+            // Insert lead directly into database
+            const { data, error } = await window.supabaseClient
+                .from('leads')
+                .insert([{
+                    name: leadData.name,
+                    email: leadData.email,
+                    company: leadData.company || null,
+                    service: leadData.service || null,
+                    message: leadData.message,
+                    phone: leadData.phone || null,
+                    source: 'website',
+                    status: 'new'
+                }])
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Database error:', error);
+                
+                // Provide user-friendly error messages
+                if (error.code === 'PGRST116') {
+                    throw new Error('Database permissions not configured properly. Please contact support.');
+                } else if (error.message.includes('duplicate key')) {
+                    throw new Error('This submission appears to be a duplicate. Please try again.');
+                } else if (error.message.includes('network')) {
+                    throw new Error('Network connection error. Please check your internet connection and try again.');
+                } else {
+                    throw new Error(`Database error: ${error.message}`);
+                }
+            }
+
+            console.log('Lead saved successfully:', data);
+            return { success: true, leadId: data.id, data };
+            
+        } catch (error) {
+            console.error('Direct submission error:', error);
+            throw error;
+        }
+    }
+
+    async sendEmailNotificationInBackground(leadData, leadId) {
+        // This runs in the background and doesn't affect the user experience
+        console.log('Attempting to send email notification in background');
+        
+        try {
+            // Check if Supabase client is available
+            if (typeof window.supabaseClient === 'undefined') {
+                console.log('Supabase client not available for email notification');
+                return;
+            }
+
+            // Call the edge function for email notification
+            const { data, error } = await window.supabaseClient.functions.invoke('send-lead-notification', {
+                body: {
+                    ...leadData,
+                    leadId: leadId
+                }
+            });
+
+            if (error) {
+                console.warn('Email notification failed (this does not affect form submission):', error);
+            } else {
+                console.log('Email notification sent successfully:', data);
+            }
+        } catch (error) {
+            console.warn('Email notification error (this does not affect form submission):', error);
+        }
+    }
+
+    setLoadingState(isLoading) {
+        if (this.submitButton) {
+            this.submitButton.disabled = isLoading;
+            this.submitButton.textContent = isLoading ? 'Sending...' : 'Send Message';
+        }
+        
+        // Add visual loading indicator
+        if (isLoading) {
+            this.submitButton?.classList.add('loading');
+        } else {
+            this.submitButton?.classList.remove('loading');
+        }
+    }
+
+    showSuccess(message) {
+        this.hideMessages();
+        if (this.successMessage) {
+            this.successMessage.textContent = message;
+            this.successMessage.style.display = 'block';
+            this.successMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    showError(message) {
+        this.hideMessages();
+        if (this.errorMessage) {
+            this.errorMessage.textContent = message;
+            this.errorMessage.style.display = 'block';
+            this.errorMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    hideMessages() {
+        if (this.successMessage) {
+            this.successMessage.style.display = 'none';
+        }
+        if (this.errorMessage) {
+            this.errorMessage.style.display = 'none';
+        }
+    }
+
+    trackFormSubmission(status, leadId = null, errorMessage = null) {
+        // Track form submission for analytics
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'form_submit', {
+                event_category: 'Contact Form',
+                event_label: status,
+                value: leadId ? 1 : 0,
+                custom_parameters: {
+                    lead_id: leadId,
+                    error_message: errorMessage
+                }
+            });
+        }
+        
+        // Console log for debugging
+        console.log('Form submission tracked:', {
+            status,
+            leadId,
+            errorMessage,
+            timestamp: new Date().toISOString()
+        });
+    }
 }
 
 // Initialize the contact form handler when the DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-  // Wait a bit for Supabase configuration to load
-  setTimeout(() => {
-    if (!window.contactFormHandler) {
-      window.contactFormHandler = new ContactFormHandler();
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing contact form handler');
+    
+    // Check if Supabase is configured
+    if (typeof window.supabaseClient === 'undefined') {
+        console.warn('Supabase client not found. Make sure supabase-config.js is loaded first.');
+        
+        // Show configuration warning
+        const forms = document.querySelectorAll('#contact-form');
+        forms.forEach(form => {
+            const warning = document.createElement('div');
+            warning.style.cssText = `
+                background: #fef3c7;
+                border: 1px solid #f59e0b;
+                color: #92400e;
+                padding: 1rem;
+                border-radius: 0.5rem;
+                margin-bottom: 1rem;
+                font-size: 0.875rem;
+            `;
+            warning.innerHTML = `
+                <strong>Configuration Required:</strong> 
+                The contact form requires Supabase configuration. 
+                Please update the settings in js/supabase-config.js
+            `;
+            form.parentNode.insertBefore(warning, form);
+        });
     }
-  }, 1000);
+    
+    // Initialize the contact form handler
+    new ContactFormHandler();
 });
 
-// Also initialize if configuration loads later
-window.addEventListener('load', () => {
-  if (!window.contactFormHandler) {
-    setTimeout(() => {
-      window.contactFormHandler = new ContactFormHandler();
-    }, 2000);
-  }
-});
+// Export for potential use in other scripts
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ContactFormHandler;
+}
