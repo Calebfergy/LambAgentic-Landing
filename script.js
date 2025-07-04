@@ -104,9 +104,33 @@ const statsObserver = new IntersectionObserver((entries) => {
       const target = entry.target;
       const value = target.textContent;
       
-      // Skip animation for values that contain special characters like "24/7"
-      if (value.includes('/') || value.includes('x') || value.includes(':')) {
-        // Don't animate these values, just keep them as-is
+      // Special handling for "24/7" format
+      if (value.includes('/')) {
+        const parts = value.split('/');
+        if (parts.length === 2) {
+          const leftNum = parseInt(parts[0]);
+          const rightNum = parseInt(parts[1]);
+          
+          if (!isNaN(leftNum) && !isNaN(rightNum)) {
+            // Create spans for each part
+            target.innerHTML = `<span class="left-num">0</span>/<span class="right-num">0</span>`;
+            const leftSpan = target.querySelector('.left-num');
+            const rightSpan = target.querySelector('.right-num');
+            
+            setTimeout(() => {
+              // Animate both numbers simultaneously
+              animateCounter(leftSpan, leftNum);
+              animateCounter(rightSpan, rightNum);
+            }, 500);
+            
+            statsObserver.unobserve(target);
+            return;
+          }
+        }
+      }
+      
+      // Skip animation for other special characters
+      if (value.includes('x') || value.includes(':')) {
         statsObserver.unobserve(target);
         return;
       }
