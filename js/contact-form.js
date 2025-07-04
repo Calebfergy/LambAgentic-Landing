@@ -69,16 +69,6 @@ class ContactFormHandler {
     }
   }
 
-  async waitForSupabase(maxAttempts = 10, delay = 500) {
-    for (let i = 0; i < maxAttempts; i++) {
-      if (window.supabaseClient) {
-        return true;
-      }
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-    return false;
-  }
-
   async handleSubmit(event) {
     event.preventDefault();
     
@@ -108,63 +98,22 @@ class ContactFormHandler {
         throw new Error('Please enter a valid email address.');
       }
 
-      // Wait for Supabase to be ready
-      const supabaseReady = await this.waitForSupabase();
-      
-      if (!supabaseReady || !window.supabaseClient) {
-        throw new Error('Database connection not available. Please try again in a moment or contact us directly.');
+      // Check if Supabase configuration is available
+      if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+        throw new Error('Service configuration not available. Please contact us directly at info@lambagentic.com.');
       }
 
-      // Try direct database insertion (primary method)
-      console.log('Attempting to save lead to database...');
+      // Submit lead data via Edge Function (primary method)
+      console.log('Submitting lead via Edge Function...');
       
-      let insertResult;
-      try {
-        insertResult = await window.supabaseClient
-          .from('leads')
-          .insert([{
-            name: leadData.name,
-            email: leadData.email,
-            company: leadData.company || null,
-            service: leadData.service || null,
-            message: leadData.message,
-            phone: leadData.phone || null,
-            source: 'website',
-            status: 'new'
-          }])
-          .select()
-          .single();
-      } catch (fetchError) {
-        console.error('Network error during database insertion:', fetchError);
-        
-        // Check if it's a network connectivity issue
-        if (fetchError.message.includes('fetch') || fetchError.name === 'TypeError') {
-          throw new Error('Network connection error. Please check your internet connection and try again.');
-        }
-        
-        throw fetchError;
-      }
-
-      const { data, error } = insertResult;
-
-      if (error) {
-        console.error('Database insertion failed:', error);
-        
-        // Check if it's a permission/RLS error
-        if (error.code === '42501' || error.message.includes('permission') || error.message.includes('RLS')) {
-          throw new Error('Database permissions not configured properly. Please contact support.');
-        }
-        
-        // Check if it's a connection error
-        if (error.message.includes('fetch') || error.message.includes('network')) {
-          throw new Error('Network connection error. Please check your internet connection and try again.');
-        }
-        
-        throw new Error(`Database error: ${error.message}`);
+      const result = await this.submitLeadViaEdgeFunction(leadData);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to submit lead data');
       }
 
       // Success!
-      console.log('Lead saved successfully:', data);
+      console.log('Lead submitted successfully:', result.data);
       
       // Show success message
       this.showMessage('Thank you for your message! We\'ll get back to you within 24 hours.', 'success');
@@ -180,26 +129,20 @@ class ContactFormHandler {
         });
       }
 
-      // Try to send email notification in the background (optional)
-      this.sendEmailNotification(leadData, data.id).catch(emailError => {
-        console.warn('Email notification failed (this is optional):', emailError);
-        // Don't show error to user since the main form submission succeeded
-      });
-
     } catch (error) {
       console.error('Form submission error:', error);
       
       // Provide specific error messages based on error type
       let userMessage = 'There was an error sending your message. ';
       
-      if (error.message.includes('Database connection not available')) {
-        userMessage += 'Please try again in a moment or contact us directly at info@lambagentic.com.';
-      } else if (error.message.includes('permissions') || error.message.includes('RLS')) {
-        userMessage += 'Our system is currently being configured. Please contact us directly at info@lambagentic.com or call +1 (208) 361-1518.';
-      } else if (error.message.includes('Network connection')) {
+      if (error.message.includes('Service configuration not available')) {
+        userMessage = error.message;
+      } else if (error.message.includes('Network connection') || error.message.includes('fetch')) {
         userMessage += 'Please check your internet connection and try again.';
       } else if (error.message.includes('Please fill in') || error.message.includes('valid email')) {
         userMessage = error.message; // Use the validation error message directly
+      } else if (error.message.includes('timeout') || error.message.includes('timed out')) {
+        userMessage += 'The request timed out. Please try again or contact us directly at info@lambagentic.com.';
       } else {
         userMessage += `Please try again or contact us directly at info@lambagentic.com. Error: ${error.message}`;
       }
@@ -211,24 +154,18 @@ class ContactFormHandler {
     }
   }
 
-  async sendEmailNotification(leadData, leadId) {
-    // Only attempt email notification if we have the required configuration
-    if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
-      console.log('Skipping email notification - Supabase not configured');
-      return;
-    }
-
+  async submitLeadViaEdgeFunction(leadData) {
     try {
       const functionUrl = `${window.SUPABASE_URL}/functions/v1/send-lead-notification`;
       
-      console.log('Attempting to call edge function:', functionUrl);
+      console.log('Calling Edge Function:', functionUrl);
       
-      // Set a shorter timeout for the email notification since it's optional
+      // Set a timeout for the request
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
-        console.log('Email notification request timed out');
+        console.log('Edge Function request timed out');
         controller.abort();
-      }, 15000); // 15 second timeout
+      }, 30000); // 30 second timeout
       
       const response = await fetch(functionUrl, {
         method: 'POST',
@@ -236,32 +173,65 @@ class ContactFormHandler {
           'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...leadData, leadId }),
+        body: JSON.stringify({
+          ...leadData,
+          source: 'website',
+          status: 'new'
+        }),
         signal: controller.signal
       });
 
       clearTimeout(timeoutId);
 
-      console.log('Edge function response status:', response.status);
+      console.log('Edge Function response status:', response.status);
       
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Email notification sent successfully:', result);
-      } else {
+      if (!response.ok) {
         const errorText = await response.text();
-        console.warn('Email notification failed with status:', response.status);
-        console.warn('Error response:', errorText);
+        console.error('Edge Function failed with status:', response.status);
+        console.error('Error response:', errorText);
+        
+        // Try to parse error details
+        let errorMessage = 'Server error occurred';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorData.message || errorMessage;
+        } catch (parseError) {
+          // Use the raw error text if JSON parsing fails
+          errorMessage = errorText || errorMessage;
+        }
+        
+        return {
+          success: false,
+          error: `Server responded with error: ${errorMessage}`
+        };
       }
+      
+      const result = await response.json();
+      console.log('Edge Function response:', result);
+      
+      return {
+        success: true,
+        data: result
+      };
+      
     } catch (error) {
+      console.error('Edge Function call error:', error);
+      
       if (error.name === 'AbortError') {
-        console.warn('Email notification timed out (this is optional)');
+        return {
+          success: false,
+          error: 'Request timed out. Please try again.'
+        };
+      } else if (error.message.includes('fetch') || error.name === 'TypeError') {
+        return {
+          success: false,
+          error: 'Network connection error. Please check your internet connection and try again.'
+        };
       } else {
-        console.warn('Email notification error (this is optional):', error);
-        console.warn('Error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        });
+        return {
+          success: false,
+          error: error.message || 'Unknown error occurred'
+        };
       }
     }
   }
@@ -269,7 +239,7 @@ class ContactFormHandler {
 
 // Initialize the contact form handler when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  // Wait a bit for Supabase to initialize
+  // Wait a bit for Supabase configuration to load
   setTimeout(() => {
     if (!window.contactFormHandler) {
       window.contactFormHandler = new ContactFormHandler();
@@ -277,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 1000);
 });
 
-// Also initialize if Supabase loads later
+// Also initialize if configuration loads later
 window.addEventListener('load', () => {
   if (!window.contactFormHandler) {
     setTimeout(() => {
