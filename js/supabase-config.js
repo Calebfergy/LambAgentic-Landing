@@ -2,8 +2,8 @@
 // Note: In production, these should be environment variables
 // For now, they need to be set manually or through your deployment process
 
-window.SUPABASE_URL = 'https://your-project-id.supabase.co';
-window.SUPABASE_ANON_KEY = 'your-anon-key-here';
+window.SUPABASE_URL = 'https://bjqxrxorcrrtstjkavlo.supabase.co';
+window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqcXhyeG9yY3JydHN0amthdmxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2NzkwNDEsImV4cCI6MjA1ODI1NTA0MX0.DH4CRtcU2IqyMf-xJqAVpfLSZItdYUlpA6sTmBmBxiY';
 
 // Function to check if Supabase is properly configured
 function checkSupabaseConfig() {
