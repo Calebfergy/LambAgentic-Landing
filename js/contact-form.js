@@ -156,7 +156,7 @@ class ContactFormHandler {
 
   async submitLeadViaEdgeFunction(leadData) {
     try {
-      const functionUrl = `${window.SUPABASE_URL}/functions/v1/send-lead-notification`;
+      const functionUrl = `https://bjqxrxorcrrtstjkavlo.supabase.co/functions/v1/send-lead-notification`;
       
       console.log('Calling Edge Function:', functionUrl);
       
