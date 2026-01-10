@@ -135,10 +135,18 @@ const statsObserver = new IntersectionObserver((entries) => {
         if (!isNaN(number)) {
           target.textContent = '0%';
           setTimeout(() => {
-            animateCounter(target, number);
-            setTimeout(() => {
-              target.textContent = number + '%';
-            }, 2000);
+            // Animate with percentage preserved
+            let start = 0;
+            const increment = number / (2000 / 16);
+            const timer = setInterval(() => {
+              start += increment;
+              if (start >= number) {
+                target.textContent = number + '%';
+                clearInterval(timer);
+              } else {
+                target.textContent = Math.floor(start) + '%';
+              }
+            }, 16);
           }, 500);
         }
         statsObserver.unobserve(target);
