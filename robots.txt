@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://lambagentic.com/sitemap.xml
+
+# Disallow template files
+Disallow: /blog-posts/BLOG_POST_TEMPLATE.html
