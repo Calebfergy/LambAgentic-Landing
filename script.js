@@ -98,11 +98,20 @@ const animateCounter = (element, target, duration = 2000) => {
 
 // Animate counters when they come into view
 const statNumbers = document.querySelectorAll('.stat-number');
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/d6f6280a-18f1-48d0-9250-4dc5946d3f55',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:100',message:'StatsObserver init',data:{statCount:statNumbers.length,statValues:Array.from(statNumbers).map(s=>s.textContent)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+// #endregion
 const statsObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d6f6280a-18f1-48d0-9250-4dc5946d3f55',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:103',message:'StatsObserver entry',data:{isIntersecting:entry.isIntersecting,textContent:entry.target.textContent,parentOpacity:entry.target.parentElement?.style.opacity||'not-set',sectionOpacity:entry.target.closest('section')?.style.opacity||'not-set'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     if (entry.isIntersecting) {
       const target = entry.target;
       const value = target.textContent;
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d6f6280a-18f1-48d0-9250-4dc5946d3f55',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:107',message:'StatsObserver processing',data:{value:value,hasSlash:value.includes('/'),hasPercent:value.includes('%'),hasPlus:value.includes('+')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       
       // Special handling for "24/7" format
       if (value.includes('/')) {
@@ -133,16 +142,22 @@ const statsObserver = new IntersectionObserver((entries) => {
       if (value.includes('%')) {
         const number = parseInt(value.replace(/\D/g, ''));
         if (!isNaN(number)) {
+          // #region agent log
+          fetch('http://127.0.0.1:7243/ingest/d6f6280a-18f1-48d0-9250-4dc5946d3f55',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:133',message:'Percentage animation starting',data:{number:number,originalValue:value},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+          // #endregion
           target.textContent = '0%';
           setTimeout(() => {
             // Animate with percentage preserved
             let start = 0;
-            const increment = number / (2000 / 16);
+            const increment = number / (1400 / 16);
             const timer = setInterval(() => {
               start += increment;
               if (start >= number) {
                 target.textContent = number + '%';
                 clearInterval(timer);
+                // #region agent log
+                fetch('http://127.0.0.1:7243/ingest/d6f6280a-18f1-48d0-9250-4dc5946d3f55',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:148',message:'Percentage animation complete',data:{finalValue:target.textContent},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+                // #endregion
               } else {
                 target.textContent = Math.floor(start) + '%';
               }
@@ -177,7 +192,7 @@ const statsObserver = new IntersectionObserver((entries) => {
           animateCounter(target, number);
           setTimeout(() => {
             target.textContent = number.toString();
-          }, 2000);
+          }, 1400);
         }, 500);
         statsObserver.unobserve(target);
         return;
@@ -189,7 +204,12 @@ const statsObserver = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.5 });
 
-statNumbers.forEach(stat => statsObserver.observe(stat));
+statNumbers.forEach(stat => {
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/d6f6280a-18f1-48d0-9250-4dc5946d3f55',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:192',message:'Observing stat',data:{textContent:stat.textContent,parentSection:stat.closest('section')?.id||'none',sectionOpacity:stat.closest('section')?.style.opacity||'not-set'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+  // #endregion
+  statsObserver.observe(stat);
+});
 
 // Add loading states and micro-interactions
 document.querySelectorAll('.btn').forEach(button => {
@@ -224,29 +244,4 @@ const preloadImage = (src) => {
 // Preload logo
 preloadImage('LambAgenticLogo.png');
 
-// Add smooth reveal animation for sections
-const revealSections = document.querySelectorAll('section');
-const sectionObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('revealed');
-    }
-  });
-}, { threshold: 0.1 });
-
-revealSections.forEach(section => {
-  section.style.opacity = '0';
-  section.style.transform = 'translateY(20px)';
-  section.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-  sectionObserver.observe(section);
-});
-
-// Add CSS for revealed sections
-const style = document.createElement('style');
-style.textContent = `
-  section.revealed {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-  }
-`;
-document.head.appendChild(style);
+// Section animations removed - only counter animation remains for index.html
