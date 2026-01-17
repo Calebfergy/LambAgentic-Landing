@@ -968,7 +968,7 @@ section {
 .blog-header {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   color: var(--white);
-  padding: var(--space-xl) 0;
+  padding: calc(70px + var(--space-xl)) 0 var(--space-xl);
   text-align: center;
 }
 
