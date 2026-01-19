@@ -1,3 +1,37 @@
+// Enforce HTTPS + preferred hostname + no /index.html (skip local/dev).
+(() => {
+  const { protocol, hostname, pathname, search, hash } = window.location;
+  const isLocalHost =
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname.endsWith('.local') ||
+    protocol === 'file:';
+
+  if (isLocalHost) {
+    return;
+  }
+
+  const preferredHost = 'lambagentic.com';
+  let normalizedPath = pathname;
+
+  if (normalizedPath.endsWith('/index.html')) {
+    normalizedPath = normalizedPath.slice(0, -'/index.html'.length) || '/';
+    if (!normalizedPath.endsWith('/')) {
+      normalizedPath += '/';
+    }
+  }
+
+  const needsRedirect =
+    protocol !== 'https:' ||
+    hostname !== preferredHost ||
+    normalizedPath !== pathname;
+
+  if (needsRedirect) {
+    const targetUrl = `https://${preferredHost}${normalizedPath}${search}${hash}`;
+    window.location.replace(targetUrl);
+  }
+})();
+
 // Mobile Navigation Toggle
 const navToggle = document.getElementById('nav-toggle');
 const navMenu = document.getElementById('nav-menu');
