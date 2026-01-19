@@ -41,6 +41,14 @@
       link.setAttribute('href', `${rootPrefix}${href.slice(1)}`);
     });
 
+    document
+      .querySelectorAll('link[rel~="icon"][href^="/"], link[rel="apple-touch-icon"][href^="/"]')
+      .forEach(link => {
+        const href = link.getAttribute('href');
+        if (!href) return;
+        link.setAttribute('href', `${rootPrefix}${href.slice(1)}`);
+      });
+
     return;
   }
 
