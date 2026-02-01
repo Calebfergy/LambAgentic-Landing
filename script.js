@@ -34,7 +34,7 @@
       }
 
       if (href.startsWith('/#')) {
-        link.setAttribute('href', `${rootPrefix}index.html${href}`);
+        link.setAttribute('href', `${rootPrefix}index.html${href.slice(1)}`);
         return;
       }
 
@@ -113,9 +113,14 @@ document.querySelectorAll('.nav-link').forEach(link => {
 // Smooth scrolling for navigation links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function (e) {
-    e.preventDefault();
-    const target = document.querySelector(this.getAttribute('href'));
+    const href = this.getAttribute('href');
+    if (!href || href === '#') {
+      return;
+    }
+
+    const target = document.querySelector(href);
     if (target) {
+      e.preventDefault();
       target.scrollIntoView({
         behavior: 'smooth',
         block: 'start'
@@ -177,20 +182,11 @@ const animateCounter = (element, target, duration = 2000) => {
 
 // Animate counters when they come into view
 const statNumbers = document.querySelectorAll('.stat-number');
-// #region agent log
-fetch('http://127.0.0.1:7243/ingest/d6f6280a-18f1-48d0-9250-4dc5946d3f55',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:100',message:'StatsObserver init',data:{statCount:statNumbers.length,statValues:Array.from(statNumbers).map(s=>s.textContent)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-// #endregion
 const statsObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/d6f6280a-18f1-48d0-9250-4dc5946d3f55',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:103',message:'StatsObserver entry',data:{isIntersecting:entry.isIntersecting,textContent:entry.target.textContent,parentOpacity:entry.target.parentElement?.style.opacity||'not-set',sectionOpacity:entry.target.closest('section')?.style.opacity||'not-set'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     if (entry.isIntersecting) {
       const target = entry.target;
       const value = target.textContent;
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d6f6280a-18f1-48d0-9250-4dc5946d3f55',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:107',message:'StatsObserver processing',data:{value:value,hasSlash:value.includes('/'),hasPercent:value.includes('%'),hasPlus:value.includes('+')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       
       // Special handling for "24/7" format
       if (value.includes('/')) {
@@ -221,9 +217,6 @@ const statsObserver = new IntersectionObserver((entries) => {
       if (value.includes('%')) {
         const number = parseInt(value.replace(/\D/g, ''));
         if (!isNaN(number)) {
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/d6f6280a-18f1-48d0-9250-4dc5946d3f55',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:133',message:'Percentage animation starting',data:{number:number,originalValue:value},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-          // #endregion
           target.textContent = '0%';
           setTimeout(() => {
             // Animate with percentage preserved
@@ -234,9 +227,6 @@ const statsObserver = new IntersectionObserver((entries) => {
               if (start >= number) {
                 target.textContent = number + '%';
                 clearInterval(timer);
-                // #region agent log
-                fetch('http://127.0.0.1:7243/ingest/d6f6280a-18f1-48d0-9250-4dc5946d3f55',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:148',message:'Percentage animation complete',data:{finalValue:target.textContent},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-                // #endregion
               } else {
                 target.textContent = Math.floor(start) + '%';
               }
@@ -284,9 +274,6 @@ const statsObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.5 });
 
 statNumbers.forEach(stat => {
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/d6f6280a-18f1-48d0-9250-4dc5946d3f55',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:192',message:'Observing stat',data:{textContent:stat.textContent,parentSection:stat.closest('section')?.id||'none',sectionOpacity:stat.closest('section')?.style.opacity||'not-set'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-  // #endregion
   statsObserver.observe(stat);
 });
 
