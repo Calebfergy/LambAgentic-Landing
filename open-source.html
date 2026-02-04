@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Explore LambAgentic open source projects and GitHub repositories." />
+  <meta name="keywords" content="open source, GitHub, software, LambAgentic" />
+  <meta name="author" content="LambAgentic Team" />
+  <meta property="og:title" content="Our Open Source Software | LambAgentic" />
+  <meta property="og:description" content="Explore LambAgentic open source projects and GitHub repositories." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://lambagentic.com/open-source.html" />
+  <link rel="canonical" href="https://lambagentic.com/open-source.html" />
+  <title>Our Open Source Software | LambAgentic</title>
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/LambAgenticLogo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .readme-panel {
+      margin-top: var(--space-lg);
+      padding: var(--space-lg);
+      border-radius: var(--radius-lg);
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+    }
+
+    .readme-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: var(--space-sm);
+    }
+
+    .readme-content {
+      font-size: 0.95rem;
+      color: var(--gray-700);
+      line-height: 1.7;
+      max-height: 320px;
+      overflow: auto;
+      padding-right: var(--space-sm);
+    }
+
+    .readme-content h1,
+    .readme-content h2,
+    .readme-content h3 {
+      color: var(--gray-900);
+      margin: var(--space-lg) 0 var(--space-sm);
+      line-height: 1.2;
+    }
+
+    .readme-content h1 { font-size: 1.5rem; }
+    .readme-content h2 { font-size: 1.25rem; }
+    .readme-content h3 { font-size: 1.1rem; }
+
+    .readme-content p {
+      margin-bottom: var(--space-md);
+    }
+
+    .readme-content ul {
+      padding-left: 1.25rem;
+      margin-bottom: var(--space-md);
+    }
+
+    .readme-content li {
+      margin-bottom: var(--space-xs);
+    }
+
+    .readme-content code {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      background: var(--gray-100);
+      padding: 0.1rem 0.35rem;
+      border-radius: var(--radius-sm);
+    }
+
+    .readme-content pre {
+      background: var(--gray-900);
+      color: var(--gray-50);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      overflow: auto;
+      margin-bottom: var(--space-md);
+    }
+
+    .readme-content pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <a href="/" style="display: flex; align-items: center; gap: var(--space-sm); text-decoration: none; color: inherit;">
+          <img src="LambAgenticLogo.png" alt="LambAgentic" class="nav-logo">
+          <span class="brand-text">LambAgentic</span>
+        </a>
+      </div>
+      <div class="nav-menu" id="nav-menu">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/#services" class="nav-link">Services</a>
+        <a href="/#solutions" class="nav-link">Solutions</a>
+        <a href="/#products" class="nav-link">Products</a>
+        <a href="/#about" class="nav-link">About</a>
+        <a href="blog.html" class="nav-link">Blog</a>
+        <a href="/#contact" class="nav-link">Contact</a>
+        <a href="tel:+12083611518" class="nav-cta">Talk to AI</a>
+      </div>
+      <div class="nav-toggle" id="nav-toggle">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-container">
+      <div class="hero-content">
+        <h1 class="hero-title">Our Open Source Software</h1>
+        <p class="hero-subtitle">
+          We build and share software that helps teams automate, integrate, and deliver better customer experiences.
+          Explore our GitHub repositories and upcoming releases.
+        </p>
+        <div class="hero-actions">
+          <a href="https://github.com/LambAgentic" class="btn btn-primary" target="_blank" rel="noopener noreferrer">View GitHub</a>
+          <a href="/#contact" class="btn btn-secondary">Talk to Us</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="floating-card">
+          <div class="card-header">
+            <div class="card-dots">
+              <span></span><span></span><span></span>
+            </div>
+            <span class="card-title">Open Source Updates</span>
+          </div>
+          <div class="card-content">
+            <div class="metric">
+              <span class="metric-label">Projects</span>
+              <span class="metric-value">Growing</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Status</span>
+              <span class="metric-value">Active</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Community</span>
+              <span class="metric-value">Welcome</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="services">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Featured Repositories</h2>
+        <p class="section-subtitle">Download, fork, or contribute to the projects we are shipping.</p>
+      </div>
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon">OSS</div>
+          <h3 class="service-title">EspoCRM OAuth Extension</h3>
+          <p class="service-description">
+            An OAuth IMAP extension for EspoCRM to modernize email authentication workflows.
+          </p>
+          <ul class="service-features">
+            <li>GitHub-hosted repository</li>
+            <li>README loaded live from GitHub</li>
+            <li>Versioned release assets</li>
+          </ul>
+          <a href="https://github.com/LambAgentic/EspoCRM-OAuth-Extension" class="service-link" target="_blank" rel="noopener noreferrer">View on GitHub →</a>
+          <div class="readme-panel" data-readme-repo="LambAgentic/EspoCRM-OAuth-Extension">
+          <div class="readme-title">README</div>
+          <div class="readme-content">Loading README...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <img src="LambAgenticLogo.png" alt="LambAgentic" class="footer-logo">
+          <p class="footer-tagline">Intelligent Solutions for Modern Business</p>
+        </div>
+        <div class="footer-links">
+          <div class="link-group">
+            <h4>Services</h4>
+            <a href="ai-automation.html">AI Automation</a>
+            <a href="conversational-ai.html">Conversational AI</a>
+            <a href="data-analytics.html">Data Analytics</a>
+            <a href="system-integration.html">System Integration</a>
+            <a href="custom-software-development.html">Custom Software Development</a>
+            <a href="web-development.html">Web Development</a>
+            <a href="financial-consulting.html">Financial Consulting</a>
+            <a href="cyber-security-consulting.html">Cyber Security Consulting</a>
+          </div>
+          <div class="link-group">
+            <h4>Company</h4>
+            <a href="/#about">About Us</a>
+            <a href="blog.html">Blog</a>
+            <a href="/#contact">Contact</a>
+            <a href="tel:+12083611518">Support</a>
+            <a href="https://www.linkedin.com/company/lambagentic/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          </div>
+          <div class="link-group">
+            <h4>Resources</h4>
+            <a href="open-source.html">Open Source</a>
+            <a href="sitemap.xml">Sitemap</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 LambAgentic. All rights reserved.</p>
+        <div class="footer-legal">
+          <a href="privacy-policy.html">Privacy Policy</a>
+          <a href="terms-of-service.html">Terms of Service</a>
+          <a href="sitemap.xml">Sitemap</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    const readmePanels = document.querySelectorAll('[data-readme-repo]');
+
+    const escapeHtml = value =>
+      value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const inlineMarkdown = text => {
+      const escaped = escapeHtml(text);
+      return escaped
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`(.+?)`/g, '<code>$1</code>')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    };
+
+    const markdownToHtml = markdown => {
+      const lines = markdown.replace(/\r\n/g, '\n').split('\n');
+      const html = [];
+      let inCode = false;
+      let codeBuffer = [];
+      let listBuffer = [];
+      let paraBuffer = [];
+
+      const flushParagraph = () => {
+        if (paraBuffer.length) {
+          html.push(`<p>${inlineMarkdown(paraBuffer.join(' '))}</p>`);
+          paraBuffer = [];
+        }
+      };
+
+      const flushList = () => {
+        if (listBuffer.length) {
+          html.push('<ul>');
+          listBuffer.forEach(item => {
+            html.push(`<li>${inlineMarkdown(item)}</li>`);
+          });
+          html.push('</ul>');
+          listBuffer = [];
+        }
+      };
+
+      const flushCode = () => {
+        if (codeBuffer.length) {
+          html.push(`<pre><code>${escapeHtml(codeBuffer.join('\n'))}</code></pre>`);
+          codeBuffer = [];
+        }
+      };
+
+      lines.forEach(line => {
+        if (line.trim().startsWith('```')) {
+          if (inCode) {
+            flushCode();
+            inCode = false;
+          } else {
+            flushParagraph();
+            flushList();
+            inCode = true;
+          }
+          return;
+        }
+
+        if (inCode) {
+          codeBuffer.push(line);
+          return;
+        }
+
+        const headingMatch = line.match(/^(#{1,3})\s+(.*)$/);
+        if (headingMatch) {
+          flushParagraph();
+          flushList();
+          const level = headingMatch[1].length;
+          html.push(`<h${level}>${inlineMarkdown(headingMatch[2])}</h${level}>`);
+          return;
+        }
+
+        const listMatch = line.match(/^\s*[-*]\s+(.*)$/);
+        if (listMatch) {
+          flushParagraph();
+          listBuffer.push(listMatch[1]);
+          return;
+        }
+
+        if (!line.trim()) {
+          flushParagraph();
+          flushList();
+          return;
+        }
+
+        paraBuffer.push(line.trim());
+      });
+
+      flushParagraph();
+      flushList();
+      if (inCode) {
+        flushCode();
+      }
+
+      return html.join('');
+    };
+
+    readmePanels.forEach(panel => {
+      const repo = panel.getAttribute('data-readme-repo');
+      const output = panel.querySelector('.readme-content');
+      const readmeUrl = `https://raw.githubusercontent.com/${repo}/main/README.md`;
+
+      fetch(readmeUrl)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('README not found');
+          }
+          return response.text();
+        })
+        .then(text => {
+          const trimmed = text.trim();
+          output.innerHTML = trimmed ? markdownToHtml(trimmed) : '<p>README is empty.</p>';
+        })
+        .catch(() => {
+          output.textContent = 'README coming soon.';
+        });
+    });
+  </script>
+</body>
+</html>
