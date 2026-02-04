@@ -180,6 +180,34 @@ const animateCounter = (element, target, duration = 2000) => {
   }, 16);
 };
 
+(function () {
+  // Determine where index.html is relative to current page
+  const path = window.location.pathname.replace(/\\/g, "/");
+  const file = path.split("/").pop().toLowerCase();
+
+  // homepage if index.html or "/" (some servers)
+  const onHome = file === "" || file === "index.html";
+
+  // blog posts are usually /blog-posts/...
+  const inBlogPosts = path.toLowerCase().includes("/blog-posts/");
+
+  // Prefix to reach index.html
+  const prefix = onHome ? "" : (inBlogPosts ? "../" : "");
+
+  // Use #anchors on home, otherwise link to index.html#anchor
+  const toHomeAnchor = (anchor) => (onHome ? `#${anchor}` : `${prefix}index.html#${anchor}`);
+
+  document.querySelectorAll('[data-nav]').forEach(a => {
+    const anchor = a.getAttribute('data-nav');
+    a.setAttribute('href', toHomeAnchor(anchor));
+  });
+
+  // Make logo/home link consistent too
+  const homeLink = document.querySelector('[data-home-link]');
+  if (homeLink) homeLink.setAttribute('href', onHome ? "#home" : `${prefix}index.html#home`);
+})();
+
+
 // Animate counters when they come into view
 const statNumbers = document.querySelectorAll('.stat-number');
 const statsObserver = new IntersectionObserver((entries) => {
